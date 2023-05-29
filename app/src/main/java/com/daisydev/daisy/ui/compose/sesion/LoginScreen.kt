@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -20,11 +23,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -74,8 +82,8 @@ private fun Login(
         LoadingIndicator()
     } else {
         Column(modifier = modifier) {
-            HeaderImage(Modifier.align(Alignment.CenterHorizontally))
-            Spacer(modifier = Modifier.padding(16.dp))
+            LoginHeader(Modifier.align(Alignment.CenterHorizontally))
+            Spacer(modifier = Modifier.padding(24.dp))
             EmailField(email) { viewModel.onLoginChanged(it, password) }
             Spacer(modifier = Modifier.padding(4.dp))
             PasswordField(password) { viewModel.onLoginChanged(email, it) }
@@ -105,6 +113,8 @@ private fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
 
 @Composable
 private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     TextField(
         value = password,
         onValueChange = { onTextFieldChanged(it) },
@@ -114,6 +124,8 @@ private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit
                 text = "Contraseña",
             )
         },
+        visualTransformation = if (passwordVisible) VisualTransformation.None
+        else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         singleLine = true,
         maxLines = 1,
@@ -122,7 +134,19 @@ private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
-        )
+        ),
+        trailingIcon = {
+            val icon =
+                if (passwordVisible)
+                    painterResource(id = R.drawable.ic_visibility)
+                else painterResource(id = R.drawable.ic_visibility_off)
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    painter = icon,
+                    contentDescription = "Toggle password visibility",
+                )
+            }
+        }
     )
 }
 
@@ -145,15 +169,38 @@ private fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
-        )
+        ),
+        trailingIcon = {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_email),
+                contentDescription = "Contraseña"
+            )
+        }
     )
 }
 
 @Composable
-private fun HeaderImage(modifier: Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.ic_daisy_no_bg),
-        contentDescription = "Header Image",
-        modifier = modifier
-    )
+private fun LoginHeader(modifier: Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_daisy_no_bg),
+            contentDescription = "Header Image",
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(100.dp)
+        )
+        Spacer(modifier = Modifier.padding(16.dp))
+        Text(
+            text = "Daisy",
+            style = MaterialTheme.typography.displayLarge
+        )
+        Spacer(modifier = Modifier.padding(16.dp))
+        Text(
+            text = "Iniciar sesión",
+            style = MaterialTheme.typography.titleLarge
+        )
+    }
 }

@@ -25,6 +25,9 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
     private val _password = MutableLiveData<String>()
     val password: LiveData<String> = _password
 
+    private val _ConditionsChecked = MutableLiveData<Boolean>()
+    val conditionsChecked: LiveData<Boolean> = _ConditionsChecked
+
     private val _registerEnable = MutableLiveData<Boolean>()
     val registerEnable: LiveData<Boolean> = _registerEnable
 
@@ -37,12 +40,18 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
     private val _showError = MutableLiveData<Boolean>()
     val showError: LiveData<Boolean> = _showError
 
-    fun onRegisterChanged(user: String, email: String, password: String) {
+    fun onRegisterChanged(
+        user: String,
+        email: String,
+        password: String,
+        conditionsChecked: Boolean
+    ) {
         _user.value = user
         _email.value = email
         _password.value = password
+        _ConditionsChecked.value = conditionsChecked
         _registerEnable.value =
-            isValidUser(user) && isValidEmail(email) && isValidPassword(password)
+            isValidUser(user) && isValidEmail(email) && isValidPassword(password) && conditionsChecked
     }
 
     private fun isValidUser(user: String): Boolean = user.length >= 3

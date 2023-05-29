@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Daisy</string>
+    <string name="conditions">
+        Estimados usuarios,
+        \n\nQueremos recordarles que nuestra aplicación sobre plantas medicinales tiene como
+        propósito brindar información educativa y general sobre el tema. Si bien nos esforzamos
+        por proporcionar contenido preciso y confiable, es importante destacar que no nos
+        hacemos responsables del uso que ustedes hagan de la información presentada en la aplicación.
+        \n\nLas plantas medicinales y sus aplicaciones tienen propiedades y efectos diferentes
+        en cada persona, y su uso debe realizarse con precaución y bajo la supervisión
+        de profesionales de la salud calificados. Recomendamos encarecidamente consultar
+        a un médico, herbolario o experto en plantas medicinales antes de utilizar
+        cualquier planta con fines medicinales.
+        \n\nNuestra aplicación no reemplaza el consejo médico profesional ni constituye un
+        diagnóstico médico. Cada individuo es responsable de su propia salud y debe tomar
+        decisiones informadas y responsables sobre el uso de plantas medicinales.
+        \n\nQueremos promover la seguridad y el bienestar de nuestros usuarios, por lo que
+        les instamos a informarse adecuadamente, investigar y buscar orientación profesional
+        antes de utilizar cualquier planta medicinal mencionada en nuestra aplicación.
+        \n\nAdemás, tengo pleno conocimiento de que al proporcionar información o llevar
+        a cabo acciones que el equipo de Daisy App considere nocivas o riesgosas para
+        integridad física y psicológica de la comunidad, podré ser dado de baja de Daisy App.
+        \n\nGracias por utilizar nuestra aplicación y esperamos que encuentren valor en la
+        información proporcionada. Recuerden que el conocimiento responsable y la
+        consulta con expertos son fundamentales para utilizar las plantas medicinales
+        de manera segura y efectiva.
+        \n\nAtentamente,
+        \n\nEl equipo de Daisy App
+    </string>
 </resources>
