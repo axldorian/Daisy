@@ -1,6 +1,7 @@
 package com.daisydev.daisy.ui.compose.sintomas
 
 import android.graphics.Rect
+import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.OverscrollEffect
@@ -71,6 +72,23 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.daisydev.daisy.R
+//OpenAI
+import androidx.compose.runtime.rememberCoroutineScope
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import okhttp3.Headers.Companion.toHeaders
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import java.util.concurrent.TimeUnit
+import java.util.Properties
+import android.content.Context
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 
 data class Message(val name: String, val body: String)
 
@@ -81,8 +99,12 @@ fun SintomasScreen(navController: NavController) {
     val searchText by viewModel.searchText.collectAsState()
     val sintomas by viewModel.sintomas.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
+    val sampleData by viewModel.sampleData.observeAsState(emptyArray())
     val keyboardController = LocalSoftwareKeyboardController.current
     val isKeyboardOpen by keyboardAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,7 +126,16 @@ fun SintomasScreen(navController: NavController) {
                 textStyle = TextStyle(fontSize = 17.sp),
                 leadingIcon = {
                     IconButton(
-                        onClick = { busqueda(searchText);keyboardController?.hide()}
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                busqueda(searchText, context) { plantMessages ->
+                                    coroutineScope.launch(Dispatchers.Main) {
+                                        viewModel.setSampleData(plantMessages)
+                                    }
+                                }
+                            }
+                            keyboardController?.hide()
+                        }
                     ) {
                         Icon(Icons.Filled.Search, null, tint = Color.Gray)
                     }
@@ -119,7 +150,13 @@ fun SintomasScreen(navController: NavController) {
                 ),
                 keyboardActions = KeyboardActions(onSearch = {
                     keyboardController?.hide()
-                    busqueda(searchText)
+                    coroutineScope.launch(Dispatchers.IO) {
+                        busqueda(searchText, context) { plantMessages ->
+                            coroutineScope.launch(Dispatchers.Main) {
+                                viewModel.setSampleData(plantMessages)
+                            }
+                        }
+                    }
                 }),
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -141,20 +178,7 @@ fun SintomasScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             //lista de elementos favoritos
-            val SampleData: Array<Message> = arrayOf(
-                Message(
-                    "Nombre",
-                    "Descripción "
-                ),
-                Message("Nombre", "Descripción"),
-                Message("Nombre", "Descripción"),
-                Message("Nombre", "Descripción"),
-                Message("Nombre", "Descripción"),
-                Message("Nombre", "Descripción"),
-                Message("Nombre7", "Descripción"),
-                Message("Nombre8", "Descripción")
-            )
-            Conversation(messages = SampleData)
+            Conversation(messages = sampleData)
             Spacer(modifier = Modifier.height(-16.dp))
         }
         if (isSearching) {
@@ -208,9 +232,104 @@ fun keyboardAsState(): State<Keyboard> {
     return keyboardState
 }
 
-fun busqueda(value: String) {
-    println("busqueda $value")
+suspend fun busqueda(value: String, context: Context, onComplete: (Array<Message>) -> Unit) {
+    try {
+        Log.d("TAG", "Entro a la función con $value") // Imprime el mensaje en el Logcat
+        val properties = Properties()
+        val inputStream = context.assets.open("api.properties")
+        properties.load(inputStream)
+        val apiKey = properties.getProperty("API_KEY")
+        val endpoint = "https://api.openai.com"
+        val prompt = "Solo como ejemplo necesito plantas curativas para $value, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
+                "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
+                "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
+                "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
+
+        val maxTokens = 800
+
+        val url = "$endpoint/v1/chat/completions"
+        val headers = mapOf(
+            "Content-Type" to "application/json",
+            "Authorization" to "Bearer $apiKey"
+        )
+        val requestBody = JSONObject()
+            .put(
+                "messages",
+                JSONArray().put(JSONObject().put("role", "system").put("content", prompt))
+            )
+            .put("max_tokens", maxTokens)
+            .put("model", "gpt-3.5-turbo")
+            .toString()
+        val mediaType = "application/json".toMediaType()
+        val request = Request.Builder()
+            .url(url)
+            .headers(headers.toHeaders())
+            .post(requestBody.toRequestBody(mediaType))
+            .build()
+
+        withContext(Dispatchers.IO) {
+            val client = OkHttpClient.Builder()
+                .connectTimeout(40, TimeUnit.SECONDS) // Establece el tiempo de espera de conexión a 30 segundos
+                .readTimeout(40, TimeUnit.SECONDS) // Establece el tiempo de espera de lectura a 30 segundos
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseData = response.body?.string()
+                    Log.d("TAG", "Respuesta: $responseData")
+                    // Procesar y manejar la lista de plantas curativas
+                    val responseJson = JSONObject(responseData)
+                    val choicesArray = responseJson.getJSONArray("choices")
+
+                    if (choicesArray.length() > 0) {
+                        val messageObject = choicesArray.getJSONObject(0).getJSONObject("message")
+                        val content = messageObject.getString("content")
+
+                        // Extraer la parte del JSON que contiene las plantas
+                        val startIndex = content.indexOf('[')
+                        val endIndex = content.lastIndexOf(']')
+                        val plantasJson = content.substring(startIndex, endIndex + 1)
+
+                        val plantasArray = JSONArray(plantasJson)
+
+                        val plantMessages = mutableListOf<Message>()
+
+                        for (i in 0 until plantasArray.length()) {
+                            val plantObject = plantasArray.getJSONObject(i)
+                            val name = plantObject.getString("nombre")
+                            val scientificName = plantObject.getString("nombre_cientifico")
+                            val uses = plantObject.getString("usos")
+                            val healingProperties = plantObject.getString("propiedades_curativas")
+                            val url = plantObject.getString("url_imagen")
+
+                            val message = Message(
+                                name,
+                                "$healingProperties"
+                            )
+                            plantMessages.add(message)
+                        }
+
+                        // Llamar a la función onComplete y pasar la lista de plantMessages
+                        onComplete(plantMessages.toTypedArray())
+                    } else {
+                        // Manejar el caso en el que no haya opciones disponibles
+                        Log.e("TAG", "No se encontraron opciones en la respuesta")
+                    }
+                } else {
+                    // Manejar el caso en el que la respuesta no sea exitosa
+                    val statusCode = response.code
+                    val errorBody = response.body?.string()
+                    Log.e("TAG", "Código de estado: $statusCode")
+                    Log.e("TAG", "Cuerpo del error: $errorBody")
+                }
+            }
+        }
+    } catch (e: Exception) {
+        // Manejar cualquier excepción que ocurra durante la búsqueda
+        Log.e("TAG", "Error en la búsqueda: ${e.message}", e)
+    }
 }
+
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable

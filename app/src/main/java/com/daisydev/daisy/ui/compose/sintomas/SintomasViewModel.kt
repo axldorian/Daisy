@@ -1,5 +1,7 @@
 package com.daisydev.daisy.ui.compose.sintomas
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.FlowPreview
@@ -16,6 +18,11 @@ import kotlinx.coroutines.flow.update
 
 @OptIn(FlowPreview::class)
 class MainViewModel : ViewModel() {
+    //Variable para el listado de plantas
+    private val _sampleData = MutableLiveData(emptyArray<Message>())
+    val sampleData: LiveData<Array<Message>> get() = _sampleData
+
+
     // Texto ingresado por el usuario
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
@@ -50,6 +57,11 @@ class MainViewModel : ViewModel() {
     fun onSearchTextChange(text: String) {
         _searchText.value = text
     }
+
+    fun setSampleData(plantMessages: Array<Message>) {
+        _sampleData.value = plantMessages
+    }
+
 }
 
 // Clase para los sintomas
