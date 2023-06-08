@@ -28,6 +28,9 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
     object Register:
         NavRoute(title = "Register", path = "register")
 
+    object Camera:
+        NavRoute(title = "Camera", path = "camera")
+
     companion object {
         // Función que devuelve una lista de NavRoute para el BottomNavigation
         fun getBottomNavRoutes(): List<NavRoute> {
@@ -36,6 +39,12 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
                 Seguimiento,
                 Blog,
                 Sesion
+            )
+        }
+
+        fun getFullScreenPaths(): List<String> {
+            return listOf(
+                Camera.path
             )
         }
     }

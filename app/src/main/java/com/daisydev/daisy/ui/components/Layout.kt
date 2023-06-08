@@ -44,7 +44,7 @@ fun Layout() {
     Scaffold(
         Modifier.nestedScroll(nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = { BottomNavigation(navController, snackbarHostState) }
+        bottomBar = { BottomNavigation(navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier

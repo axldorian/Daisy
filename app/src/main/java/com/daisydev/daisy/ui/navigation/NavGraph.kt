@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.daisydev.daisy.ui.compose.blog.BlogScreen
+import com.daisydev.daisy.ui.compose.reconocimiento.CamaraScreen
 import com.daisydev.daisy.ui.compose.seguimiento.SeguimientoScreen
 import com.daisydev.daisy.ui.compose.sesion.AccessScreen
 import com.daisydev.daisy.ui.compose.sesion.LoginScreen
@@ -42,6 +43,10 @@ fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostSt
 
         composable(NavRoute.Register.path) {
             RegisterScreen(navController = navController, snackbarHostState)
+        }
+
+        composable(NavRoute.Camera.path) {
+            CamaraScreen(navController = navController, snackbarHostState)
         }
     }
 }

@@ -27,4 +27,14 @@
         \n\nAtentamente,
         \n\nEl equipo de Daisy App
     </string>
+    <string name="camera_permission_info_0">
+        La camara es necesaria para usar las capacidades de reconocimiento.
+        Por favor, otorgue el permiso.
+    </string>
+    <string name="camera_permission_grantbutton_0">OTORGAR PERMISO</string>
+    <string name="camera_permission_info_1">
+        Al parecer ha denegado el permiso de camara, que es necesaria.
+        En la pantalla de configuración, por favor otorgue el permiso.
+    </string>
+    <string name="camera_permission_grantbutton_1">IR A CONFIGURACIÓN</string>
 </resources>
