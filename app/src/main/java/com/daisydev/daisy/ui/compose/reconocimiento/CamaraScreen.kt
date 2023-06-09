@@ -5,6 +5,7 @@ package com.daisydev.daisy.ui.compose.reconocimiento
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +38,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun CamaraScreen(
@@ -45,23 +48,35 @@ fun CamaraScreen(
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     Box(
         Modifier
             .fillMaxSize()
     ) {
         PermissionRequired(
+            context,
+            navController,
             cameraPermissionState,
             context.packageName,
-            Modifier.align(Alignment.Center)
+            Modifier.align(Alignment.Center),
+            viewModel,
+            snackbarHostState,
+            scope
         )
     }
 }
 
 @Composable
 private fun PermissionRequired(
+    context: Context,
+    navController: NavController,
     cameraPermissionState: PermissionState,
     packageName: String,
-    modifier: Modifier
+    modifier: Modifier,
+    viewModel: ReconocimientoViewModel,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope
 ) {
     val openAppSettingsLauncher =
         rememberLauncherForActivityResult(
@@ -127,18 +142,12 @@ private fun PermissionRequired(
             }
         }
     ) {
-        CameraPreview(modifier = modifier)
-    }
-}
-
-@Composable
-private fun CameraPreview(
-    modifier: Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Here will be the camera preview")
+        BuildCameraUI(
+            navController = navController,
+            context = context,
+            viewModel = viewModel,
+            snackbarHostState = snackbarHostState,
+            scope = scope
+        )
     }
 }
