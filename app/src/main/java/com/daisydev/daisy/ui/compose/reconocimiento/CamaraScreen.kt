@@ -40,6 +40,13 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Pantalla de la sección de reconocimiento.
+ *
+ * @param navController controlador de navegación.
+ * @param snackbarHostState estado del snackbar.
+ * @param viewModel ViewModel de la sección de reconocimiento.
+ */
 @Composable
 fun CamaraScreen(
     navController: NavController,
@@ -67,6 +74,16 @@ fun CamaraScreen(
     }
 }
 
+/**
+ * Función que construye la interfaz de la cámara, solicita los permisos necesarios y
+ * muestra los mensajes de error correspondientes.
+ *
+ * @param navController controlador de navegación.
+ * @param context contexto de la aplicación.
+ * @param viewModel ViewModel de la sección de reconocimiento.
+ * @param snackbarHostState estado del snackbar.
+ * @param scope scope de la corrutina.
+ */
 @Composable
 private fun PermissionRequired(
     context: Context,

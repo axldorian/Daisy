@@ -32,6 +32,7 @@ import com.daisydev.daisy.ui.feature.sesion.SesionViewModel
 import com.daisydev.daisy.ui.navigation.NavRoute
 import io.appwrite.models.User
 
+// Pantalla para ver los datos del usuario logueado
 @Composable
 fun SesionScreen(
     navController: NavController,
@@ -54,6 +55,7 @@ fun SesionScreen(
     }
 }
 
+// Mostramos la pantalla de carga o la pantalla de datos del usuario
 @Composable
 private fun ShowLoadingOrScreen(
     viewModel: SesionViewModel,
@@ -74,6 +76,7 @@ private fun ShowLoadingOrScreen(
     }
 }
 
+// Pantalla de datos del usuario
 @Composable
 private fun ScreenView(viewModel: SesionViewModel, userData: User<Map<String, Any>>?) {
     Column(
@@ -119,6 +122,7 @@ private fun ScreenView(viewModel: SesionViewModel, userData: User<Map<String, An
     }
 }
 
+// Genera avatar del usuario
 @Composable
 private fun Avatar(modifier: Modifier, letter: String) {
     Surface(

@@ -18,14 +18,17 @@ import com.daisydev.daisy.util.Constants
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    // Función que provee la url base de la API
     @Provides
     @Named("WEB_API")
     fun baseUrl(): String = Constants().baseUrl
 
+    // Función que provee el id del proyecto de AppWrite
     @Provides
     @Named("PROJECT_ID")
     fun projectId(): String = Constants().projectId
 
+    // Función que provee el cliente de AppWrite
     @Singleton
     @Provides
     fun provideAppWriteClient(
@@ -35,11 +38,13 @@ object AppModule {
     ): Client =
         Client(context).setEndpoint(baseUrl).setProject(projectId)
 
+    // Función que provee el dispatcher de la corutina
     @Provides
     fun provideCoroutineDispatcher(): CoroutineDispatcher {
         return Dispatchers.IO
     }
 
+    // Función que provee el repositorio de AppWrite
     @Provides
     fun provideAppWriteRepository(
         client: Client,

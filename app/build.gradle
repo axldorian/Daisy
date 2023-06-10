@@ -108,6 +108,9 @@ dependencies {
 
     //Compose permissions
     implementation "com.google.accompanist:accompanist-permissions:0.22.0-rc"
+
+    // json parser
+    implementation 'org.json:json:20230227'
 }
 
 kapt {

@@ -14,6 +14,9 @@ import com.daisydev.daisy.ui.compose.sesion.RegisterScreen
 import com.daisydev.daisy.ui.compose.sesion.SesionScreen
 import com.daisydev.daisy.ui.compose.sintomas.SintomasScreen
 
+/**
+ * Función que contiene el grafo de navegación de la aplicación.
+ */
 @Composable
 fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostState) {
     NavHost(navController, startDestination = NavRoute.Sintomas.path) {

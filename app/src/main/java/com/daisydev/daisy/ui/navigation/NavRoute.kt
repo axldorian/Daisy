@@ -42,6 +42,7 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
             )
         }
 
+        // Función que devuelve una lista de NavRoute que necesitan pantalla completa
         fun getFullScreenPaths(): List<String> {
             return listOf(
                 Camera.path

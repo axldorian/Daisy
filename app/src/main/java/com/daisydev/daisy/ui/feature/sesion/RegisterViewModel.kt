@@ -12,6 +12,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel para la pantalla de registro
+ * Contiene la logica de negocio de la pantalla
+ * @property appWriteRepository AppWriteRepository
+ */
 @HiltViewModel
 class RegisterViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
     ViewModel() {
@@ -40,6 +45,7 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
     private val _showError = MutableLiveData<Boolean>()
     val showError: LiveData<Boolean> = _showError
 
+    // Actualiza el valor de user, email y password y habilita el boton de register si son validos
     fun onRegisterChanged(
         user: String,
         email: String,
@@ -54,13 +60,17 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
             isValidUser(user) && isValidEmail(email) && isValidPassword(password) && conditionsChecked
     }
 
+    // Valida que el usuario tenga al menos 3 caracteres
     private fun isValidUser(user: String): Boolean = user.length >= 3
 
+    // Valida que la contraseña tenga al menos 8 caracteres
     private fun isValidPassword(password: String): Boolean = password.length >= 8
 
+    // Valida que el email tenga el formato correcto
     private fun isValidEmail(email: String): Boolean =
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
+    // Realiza el registro
     fun onRegisterSelected() {
         viewModelScope.launch {
             try {
@@ -88,6 +98,7 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
         }
     }
 
+    // Muestra el snackbar de error
     fun showSnackbar(snackbarHostState: SnackbarHostState) {
         viewModelScope.launch {
             snackbarHostState

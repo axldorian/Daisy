@@ -12,6 +12,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel para la pantalla de login
+ * Contiene la logica de negocio de la pantalla
+ * @property appWriteRepository AppWriteRepository
+ */
 @HiltViewModel
 class LoginViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
     ViewModel() {
@@ -33,17 +38,21 @@ class LoginViewModel @Inject constructor(private val appWriteRepository: AppWrit
     private val _showError = MutableLiveData<Boolean>()
     val showError: LiveData<Boolean> = _showError
 
+    // Actualiza el valor de email y password y habilita el boton de login si son validos
     fun onLoginChanged(email: String, password: String) {
         _email.value = email
         _password.value = password
         _loginEnable.value = isValidEmail(email) && isValidPassword(password)
     }
 
+    // Valida que la contraseña tenga al menos 8 caracteres
     private fun isValidPassword(password: String): Boolean = password.length >= 8
 
+    // Valida que el email tenga el formato correcto
     private fun isValidEmail(email: String): Boolean =
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
+    // Realiza el login
     fun onLoginSelected() {
         viewModelScope.launch {
             try {
@@ -61,6 +70,7 @@ class LoginViewModel @Inject constructor(private val appWriteRepository: AppWrit
         }
     }
 
+    // Muestra el snackbar de error
     fun showSnackbar(snackbarHostState: SnackbarHostState) {
         viewModelScope.launch {
             snackbarHostState

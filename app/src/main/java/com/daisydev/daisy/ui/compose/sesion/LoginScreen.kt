@@ -41,6 +41,7 @@ import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sesion.LoginViewModel
 import com.daisydev.daisy.ui.navigation.NavRoute
 
+// Pantalla de inicio de sesión
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -56,6 +57,7 @@ fun LoginScreen(
     }
 }
 
+// Contenido de la pantalla de inicio de sesión
 @Composable
 private fun Login(
     modifier: Modifier, snackbarHostState: SnackbarHostState,
@@ -95,6 +97,7 @@ private fun Login(
     }
 }
 
+// Botón de inicio de sesión
 @Composable
 private fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
     Button(
@@ -111,6 +114,7 @@ private fun LoginButton(loginEnable: Boolean, onLoginSelected: () -> Unit) {
     }
 }
 
+// Entrada de texto para la contraseña
 @Composable
 private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -150,6 +154,7 @@ private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit
     )
 }
 
+// Entrada de texto para el correo
 @Composable
 private fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     TextField(
@@ -179,6 +184,7 @@ private fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     )
 }
 
+// Encabezado de la pantalla de inicio de sesión
 @Composable
 private fun LoginHeader(modifier: Modifier) {
     Column(

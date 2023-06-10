@@ -11,6 +11,11 @@ import io.appwrite.models.User
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel para la pantalla de sesion
+ * Contiene la logica de negocio de la pantalla
+ * @property appWriteRepository AppWriteRepository
+ */
 @HiltViewModel
 class SesionViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
     ViewModel() {
@@ -24,6 +29,7 @@ class SesionViewModel @Inject constructor(private val appWriteRepository: AppWri
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
+    // Verifica si el usuario esta logueado
     fun isLogged() {
         viewModelScope.launch {
             try {
@@ -39,6 +45,7 @@ class SesionViewModel @Inject constructor(private val appWriteRepository: AppWri
         }
     }
 
+    // Cierra la sesion del usuario
     fun closeSession() {
         viewModelScope.launch {
             try {

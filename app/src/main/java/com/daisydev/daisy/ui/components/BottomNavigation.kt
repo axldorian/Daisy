@@ -19,8 +19,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.daisydev.daisy.ui.navigation.NavRoute
 
+/**
+ * Bottom navigation bar
+ * (Barra de navegación inferior)
+ * @param navController: NavController
+ */
 @Composable
 fun BottomNavigation(navController: NavController) {
+    // Obtiene las rutas de navegación
     val items = NavRoute.getBottomNavRoutes()
     val fullScreenPaths = NavRoute.getFullScreenPaths()
 
@@ -32,6 +38,7 @@ fun BottomNavigation(navController: NavController) {
         bottomAppBarVisible = destination.route !in fullScreenPaths
     }
 
+    // Crea la barra de navegación inferior
     AnimatedVisibility(visible = bottomAppBarVisible) {
         BottomAppBar(
             modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
