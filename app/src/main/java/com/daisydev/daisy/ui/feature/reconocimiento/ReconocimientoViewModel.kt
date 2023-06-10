@@ -45,7 +45,7 @@ class ReconocimientoViewModel
                 _showResponse.value = true
             } catch (e: Exception) {
                 e.printStackTrace()
-                showSnackbar(snackbarHostState)
+                showSnackbar(snackbarHostState, message = e.message)
             } finally {
                 _isLoading.value = false
             }
@@ -58,10 +58,11 @@ class ReconocimientoViewModel
     }
 
     // Función para mostrar el snackbar de error
-    fun showSnackbar(snackbarHostState: SnackbarHostState) {
+    fun showSnackbar(snackbarHostState: SnackbarHostState, message: String? = null) {
+        val msg = message ?: "Error al reconocer la imagen, intente de nuevo"
         viewModelScope.launch {
             snackbarHostState
-                .showSnackbar("Error al reconocer la imagen, intente de nuevo")
+                .showSnackbar(message = msg)
         }
     }
 }
