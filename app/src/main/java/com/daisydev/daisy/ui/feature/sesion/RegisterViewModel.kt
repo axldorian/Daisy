@@ -1,12 +1,13 @@
 package com.daisydev.daisy.ui.feature.sesion
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import android.util.Patterns
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daisydev.daisy.models.Session
+import com.daisydev.daisy.repository.local.SessionDataStore
 import com.daisydev.daisy.repository.remote.AppWriteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -18,7 +19,10 @@ import javax.inject.Inject
  * @property appWriteRepository AppWriteRepository
  */
 @HiltViewModel
-class RegisterViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
+class RegisterViewModel @Inject constructor(
+    private val appWriteRepository: AppWriteRepository,
+    private val sessionDataStore: SessionDataStore
+) :
     ViewModel() {
 
     private val _user = MutableLiveData<String>()
@@ -77,17 +81,24 @@ class RegisterViewModel @Inject constructor(private val appWriteRepository: AppW
                 _isLoading.value = true
 
                 // Register user
-                appWriteRepository.register(
+                val userData = appWriteRepository.register(
                     password = password.value!!,
                     email = email.value!!,
                     name = user.value!!
                 )
 
                 // Login user
-                val result = appWriteRepository.login(email.value!!, password.value!!)
+                appWriteRepository.login(email.value!!, password.value!!)
 
-                Log.d("LoginViewModel", "onLoginSelected success: ${result.id}")
-                // TODO: 2021-10-13 save session
+                // Save session
+                sessionDataStore.saveSession(
+                    Session(
+                        id = userData.id,
+                        name = userData.name,
+                        email = userData.email
+                    )
+                )
+
                 _registerSuccess.value = true
             } catch (e: Exception) {
                 _showError.value = true

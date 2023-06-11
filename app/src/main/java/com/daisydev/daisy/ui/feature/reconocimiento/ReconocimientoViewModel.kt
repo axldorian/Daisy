@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daisydev.daisy.models.DataPlant
+import com.daisydev.daisy.repository.local.SessionDataStore
 import com.daisydev.daisy.repository.remote.AppWriteRepository
 import com.daisydev.daisy.util.convertImage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,32 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ReconocimientoViewModel
-@Inject constructor(private val appWriteRepository: AppWriteRepository) : ViewModel() {
+@Inject constructor(
+    private val appWriteRepository: AppWriteRepository,
+    private val sessionDataStore: SessionDataStore
+) : ViewModel() {
+
+    // -- Para sesion --
+
+    private val _isUserLogged = MutableLiveData<Boolean>()
+    val isUserLogged: LiveData<Boolean> = _isUserLogged
+
+    private val _isSessionLoading = MutableLiveData<Boolean>()
+    val isSessionLoading: LiveData<Boolean> = _isSessionLoading
+
+    // Función para verificar si el usuario esta logueado
+    fun isLogged() {
+        viewModelScope.launch {
+            val userData = sessionDataStore.getSession()
+
+            // Si el id del usuario no esta vacio, entonces esta logueado
+            _isUserLogged.value = userData.id.isNotEmpty()
+
+            _isSessionLoading.value = false
+        }
+    }
+
+    // -- Para reconocimiento de plantas --
 
     private val _response = MutableLiveData<List<DataPlant>>()
     val response: LiveData<List<DataPlant>> = _response
@@ -54,6 +80,7 @@ class ReconocimientoViewModel
 
     // Función para ocultar la respuesta
     fun hideResponse() {
+        _imageConverted.value = java.io.File("")
         _showResponse.value = false
     }
 

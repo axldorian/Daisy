@@ -1,12 +1,13 @@
 package com.daisydev.daisy.ui.feature.sesion
 
-import android.util.Log
 import android.util.Patterns
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daisydev.daisy.models.Session
+import com.daisydev.daisy.repository.local.SessionDataStore
 import com.daisydev.daisy.repository.remote.AppWriteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -18,7 +19,10 @@ import javax.inject.Inject
  * @property appWriteRepository AppWriteRepository
  */
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
+class LoginViewModel @Inject constructor(
+    private val appWriteRepository: AppWriteRepository,
+    private val sessionDataStore: SessionDataStore
+) :
     ViewModel() {
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
@@ -57,9 +61,22 @@ class LoginViewModel @Inject constructor(private val appWriteRepository: AppWrit
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+
+                // Login
                 val result = appWriteRepository.login(email.value!!, password.value!!)
-                Log.d("LoginViewModel", "onLoginSelected: ${result.id}")
-                // TODO: 2021-10-13 save session
+
+                // Get user data
+                val user = appWriteRepository.getAccount()
+
+                // Save session
+                sessionDataStore.saveSession(
+                    Session(
+                        id = user.id,
+                        name = user.name,
+                        email = user.email
+                    )
+                )
+
                 _loginSuccess.value = true
             } catch (e: Exception) {
                 _showError.value = true

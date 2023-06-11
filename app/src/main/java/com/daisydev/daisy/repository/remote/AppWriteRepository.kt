@@ -126,29 +126,40 @@ class AppWriteRepository @Inject constructor(
             // Obtener el resultado de la función
             val jsonString = executionResult.response
 
+            // Variable para guardar el resultado
+            var result = listOf<DataPlant>()
+
             // Convertir el resultado a una lista de DataPlant
             val jsonArray = JSONArray(jsonString)
-            val arrRange = 0 until jsonArray.length()
 
-            arrRange.map { i ->
-                val jsonObject = jsonArray.getJSONObject(i)
+            // Si el resultado no está vacío
+            if (jsonArray.length() > 0) {
+                val arrRange = 0 until jsonArray.length()
 
-                val altNamesArr = jsonObject.getJSONArray("alt_names")
-                val altNamesRange = 0 until altNamesArr.length()
+                // Convertir el resultado a una lista de DataPlant
+                result = arrRange.map { i ->
+                    val jsonObject = jsonArray.getJSONObject(i)
 
-                val altNames: List<AltName> = altNamesRange.map {
-                    val alt_name = altNamesArr.getJSONObject(it)
-                    AltName(
-                        name = alt_name.getString("name")
+                    val altNamesArr = jsonObject.getJSONArray("alt_names")
+                    val altNamesRange = 0 until altNamesArr.length()
+
+                    val altNames: List<AltName> = altNamesRange.map {
+                        val alt_name = altNamesArr.getJSONObject(it)
+                        AltName(
+                            name = alt_name.getString("name")
+                        )
+                    }
+
+                    DataPlant(
+                        plant_name = jsonObject.getString("plant_name"),
+                        probability = jsonObject.getDouble("probability"),
+                        alt_names = altNames
                     )
                 }
-
-                DataPlant(
-                    plant_name = jsonObject.getString("plant_name"),
-                    probability = jsonObject.getDouble("probability"),
-                    alt_names = altNames
-                )
             }
+
+            // Regresar el resultado
+            result
         }
     }
 

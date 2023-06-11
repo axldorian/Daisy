@@ -19,9 +19,10 @@ fun convertImage(context: Context, image: ImageProxy): File {
     buffer.get(bytes)
     val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     val file = File(context.cacheDir, "image.jpg")
-    val outputStream = FileOutputStream(file)
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-    outputStream.close()
+    FileOutputStream(file).use { outputStream ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+        outputStream.flush()
+    }
 
     return file
 }

@@ -1,6 +1,7 @@
 package com.daisydev.daisy.di
 
 import android.content.Context
+import com.daisydev.daisy.repository.local.SessionDataStore
 import com.daisydev.daisy.repository.remote.AppWriteRepository
 import dagger.Module
 import dagger.Provides
@@ -51,4 +52,9 @@ object AppModule {
         dispatcher: CoroutineDispatcher
     ): AppWriteRepository =
         AppWriteRepository(client, dispatcher)
+
+    // Función que provee el DataStore de la sesión
+    @Provides
+    fun provideSessionDataStore(@ApplicationContext context: Context) =
+        SessionDataStore(context)
 }

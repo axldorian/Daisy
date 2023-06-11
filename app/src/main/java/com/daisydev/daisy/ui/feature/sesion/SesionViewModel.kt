@@ -1,13 +1,13 @@
 package com.daisydev.daisy.ui.feature.sesion
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daisydev.daisy.repository.local.SessionDataStore
 import com.daisydev.daisy.repository.remote.AppWriteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.appwrite.models.User
+import com.daisydev.daisy.models.Session
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,11 +17,14 @@ import javax.inject.Inject
  * @property appWriteRepository AppWriteRepository
  */
 @HiltViewModel
-class SesionViewModel @Inject constructor(private val appWriteRepository: AppWriteRepository) :
+class SesionViewModel @Inject constructor(
+    private val appWriteRepository: AppWriteRepository,
+    private val sessionDataStore: SessionDataStore
+) :
     ViewModel() {
 
-    private val _userData = MutableLiveData<User<Map<String, Any>>>()
-    val userData: LiveData<User<Map<String, Any>>> = _userData
+    private val _userData = MutableLiveData<Session>()
+    val userData: LiveData<Session> = _userData
 
     private val _isUserLogged = MutableLiveData<Boolean>()
     val isUserLogged: LiveData<Boolean> = _isUserLogged
@@ -32,16 +35,17 @@ class SesionViewModel @Inject constructor(private val appWriteRepository: AppWri
     // Verifica si el usuario esta logueado
     fun isLogged() {
         viewModelScope.launch {
-            try {
-                val result = appWriteRepository.isLoggedIn()
-                Log.d("SesionViewModel", "isLogged: ${result.id}")
-                _userData.value = appWriteRepository.getAccount()
+            val userData = sessionDataStore.getSession()
+
+            // Si el id del usuario no esta vacio, entonces esta logueado
+            if (userData.id.isNotEmpty()) {
+                _userData.value = userData
                 _isUserLogged.value = true
-            } catch (e: Exception) {
+            } else {
                 _isUserLogged.value = false
-            } finally {
-                _isLoading.value = false
             }
+
+            _isLoading.value = false
         }
     }
 
@@ -50,6 +54,7 @@ class SesionViewModel @Inject constructor(private val appWriteRepository: AppWri
         viewModelScope.launch {
             try {
                 appWriteRepository.logout()
+                sessionDataStore.clearSession()
                 _isUserLogged.value = false
             } catch (e: Exception) {
                 e.printStackTrace()

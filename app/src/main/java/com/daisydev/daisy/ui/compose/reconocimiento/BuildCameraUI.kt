@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,8 +26,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -46,6 +50,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -234,14 +240,18 @@ fun ResponseView(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight()
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight(fraction = 0.9f)
+            ) {
                 item {
                     Column(
                         modifier = Modifier
@@ -264,24 +274,88 @@ fun ResponseView(
                             .align(Alignment.CenterHorizontally)
                     ) {
                         Text(
-                            text = "Resultados generados",
-                            style = MaterialTheme.typography.displayLarge
+                            text = "Resultados del reconocimiento",
+                            style = MaterialTheme.typography.displaySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        response.forEach {
+                        Text(
+                            text = "Posibles plantas reconocidas:",
+                            style = MaterialTheme.typography.headlineLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (response.isEmpty()) {
                             Text(
-                                text = it.plant_name,
-                                style = MaterialTheme.typography.labelMedium
+                                text = "No se encontraron coincidencias",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                        }
-                        Button(
-                            onClick = { viewModel.hideResponse() },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text(text = "Volver a escanear")
+                        } else {
+                            response.forEachIndexed { index, plant ->
+                                ListItem(
+                                    colors = ListItemDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        headlineColor = MaterialTheme.colorScheme.onSurface,
+                                        leadingIconColor = MaterialTheme.colorScheme.onSurface,
+                                        supportingColor = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    headlineContent = {
+                                        Text(text = plant.plant_name)
+                                    },
+                                    leadingContent = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_plant),
+                                            contentDescription = "Planta"
+                                        )
+                                    },
+                                    supportingContent = {
+                                        Text(
+                                            text = "Probabilidad: ${
+                                                String.format(
+                                                    "%.2f",
+                                                    plant.probability * 100
+                                                )
+                                            }%"
+                                        )
+                                        if (plant.alt_names.isNotEmpty()) {
+                                            Text(
+                                                text = "Nombres alternativos: ${
+                                                    plant.alt_names.map { altName ->
+                                                        altName.name
+                                                    }
+                                                }"
+                                            )
+                                        }
+                                    }
+                                )
+
+                                // Sí no es el último elemento, se agrega un divider
+                                if (index != response.size - 1) {
+                                    Divider()
+                                }
+                            }
                         }
                     }
                 }
+            }
+            Button(
+                onClick = { viewModel.hideResponse() },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(16.dp)
+            ) {
+                Text(text = "Volver a escanear")
             }
         }
     }
