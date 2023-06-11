@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.daisydev.daisy.ui.navigation.NavGraph
 
+/**
+ * Layout principal de la aplicación. Contiene la navegación entre
+ * pantallas y la barra inferior.
+ */
 @Composable
 fun Layout() {
     val navController = rememberNavController()
@@ -41,6 +45,8 @@ fun Layout() {
         }
     }
 
+    // Scaffold es un componente de Material Design que contiene la barra inferior
+    // y la navegación entre pantallas.
     Scaffold(
         Modifier.nestedScroll(nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },

@@ -72,6 +72,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.rememberAsyncImagePainter
 import com.daisydev.daisy.ui.feature.sintomas.MainViewModel
@@ -96,7 +97,7 @@ fun SintomasScreen(navController: NavController) {
     val viewModel = viewModel<MainViewModel>()
     val searchText by viewModel.searchText.collectAsState()
     val sintomas by viewModel.sintomas.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
+    //val isSearching by viewModel.isSearching.collectAsState()
     val sampleData by viewModel.sampleData.observeAsState(emptyArray())
     val keyboardController = LocalSoftwareKeyboardController.current
     val isKeyboardOpen by keyboardAsState()
@@ -109,6 +110,12 @@ fun SintomasScreen(navController: NavController) {
             .fillMaxSize()
             .wrapContentSize(Alignment.TopCenter)
     ) {
+        Text(
+            text = "Sintomas",
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge
+        )
         Spacer(modifier = Modifier.height(24.dp))
         // Search section
         Box(
@@ -213,6 +220,7 @@ fun SintomasScreen(navController: NavController) {
                     Text(
                         // Al presionar una opcion se realiza la busqueda y oculta el teclado
                         text = "${sintoma.sintoma}",
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)
@@ -495,7 +503,8 @@ fun MessageCard(msg: Message, navController: NavController) {
                     Text(
                         text = msg.name,
                         color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
                     )
                     // Add a vertical space between the author and message texts
                     Spacer(modifier = Modifier.height(4.dp))

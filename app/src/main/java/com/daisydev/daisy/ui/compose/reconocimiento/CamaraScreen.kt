@@ -23,7 +23,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,40 +39,109 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.daisydev.daisy.R
+import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.reconocimiento.ReconocimientoViewModel
+import com.daisydev.daisy.ui.navigation.NavRoute
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Pantalla de la sección de reconocimiento.
+ *
+ * @param navController controlador de navegación.
+ * @param snackbarHostState estado del snackbar.
+ * @param viewModel ViewModel de la sección de reconocimiento.
+ */
 @Composable
 fun CamaraScreen(
     navController: NavController,
     snackbarHostState: SnackbarHostState,
     viewModel: ReconocimientoViewModel = hiltViewModel()
 ) {
+    // Para sesión
+    val isUserLogged by viewModel.isUserLogged.observeAsState(true)
+    val isSessionLoading by viewModel.isSessionLoading.observeAsState(true)
+
+    // Para reconocimiento de plantas
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-    ) {
-        PermissionRequired(
+    // Si no hay sesión, se redirige a la pantalla de acceso
+    if (!isUserLogged) {
+        LaunchedEffect(Unit) {
+            navController.navigate(NavRoute.Access.path) {
+                popUpTo(NavRoute.Sesion.path) { inclusive = true }
+            }
+        }
+    } else {
+        ShowLoadingOrScreen(
             context,
             navController,
-            cameraPermissionState,
-            context.packageName,
-            Modifier.align(Alignment.Center),
-            viewModel,
             snackbarHostState,
-            scope
+            cameraPermissionState,
+            scope,
+            viewModel,
+            isSessionLoading
         )
     }
 }
 
+@Composable
+private fun ShowLoadingOrScreen(
+    context: Context,
+    navController: NavController,
+    snackbarHostState: SnackbarHostState,
+    cameraPermissionState: PermissionState,
+    scope: CoroutineScope,
+    viewModel: ReconocimientoViewModel,
+    isSessionLoading: Boolean
+) {
+
+    // Variable para mostrar el loading
+    var shouldShowLoading by remember { mutableStateOf(true) }
+
+    // Esta variable se actualiza cuando isSessionLoading cambia
+    LaunchedEffect(isSessionLoading) {
+        shouldShowLoading = isSessionLoading
+    }
+
+    // Mostrar loading o pantalla de reconocimiento
+    if (shouldShowLoading) {
+        viewModel.isLogged()
+        LoadingIndicator()
+    } else {
+        Box(
+            Modifier
+                .fillMaxSize()
+        ) {
+            PermissionRequired(
+                context,
+                navController,
+                cameraPermissionState,
+                context.packageName,
+                Modifier.align(Alignment.Center),
+                viewModel,
+                snackbarHostState,
+                scope
+            )
+        }
+    }
+}
+
+/**
+ * Función que construye la interfaz de la cámara, solicita los permisos necesarios y
+ * muestra los mensajes de error correspondientes.
+ *
+ * @param navController controlador de navegación.
+ * @param context contexto de la aplicación.
+ * @param viewModel ViewModel de la sección de reconocimiento.
+ * @param snackbarHostState estado del snackbar.
+ * @param scope scope de la corrutina.
+ */
 @Composable
 private fun PermissionRequired(
     context: Context,

@@ -11,18 +11,19 @@ import com.daisydev.daisy.ui.components.Layout
 import com.daisydev.daisy.ui.theme.DaisyTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+// Actividad principal de la aplicación
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             DaisyTheme {
-                // A surface container using the 'background' color from the theme
+                // Un Surface es un contenedor que aplica el tema de Material Design
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Layout()
+                    Layout() // Layout principal de la aplicación
                 }
             }
         }

@@ -9,6 +9,11 @@ import androidx.navigation.NavController
 import com.daisydev.daisy.R
 import com.daisydev.daisy.ui.navigation.NavRoute
 
+/**
+ * Fab
+ * (Botón flotante que permite navegar a la pantalla de reconocimiento)
+ * @param navController
+ */
 @Composable
 fun Fab(navController: NavController) {
     FloatingActionButton(

@@ -57,6 +57,7 @@ import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sesion.RegisterViewModel
 import com.daisydev.daisy.ui.navigation.NavRoute
 
+// Pantalla de registro
 @Composable
 fun RegisterScreen(
     navController: NavController,
@@ -72,6 +73,7 @@ fun RegisterScreen(
     }
 }
 
+// Contenedor de la pantalla de registro
 @Composable
 private fun Register(
     modifier: Modifier,
@@ -132,6 +134,7 @@ private fun Register(
     }
 }
 
+// Botón de registro
 @Composable
 private fun RegisterButton(registerEnable: Boolean, onRegisterSelected: () -> Unit) {
     Button(
@@ -148,6 +151,7 @@ private fun RegisterButton(registerEnable: Boolean, onRegisterSelected: () -> Un
     }
 }
 
+// Checkbox de las condiciones de uso
 @Composable
 private fun ConditionsCheckbox(
     modifier: Modifier,
@@ -239,6 +243,7 @@ private fun ConditionsCheckbox(
     }
 }
 
+// Campo de texto para la contraseña
 @Composable
 private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -278,6 +283,7 @@ private fun PasswordField(password: String, onTextFieldChanged: (String) -> Unit
     )
 }
 
+// Campo de texto para el correo
 @Composable
 private fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     TextField(
@@ -307,6 +313,7 @@ private fun EmailField(email: String, onTextFieldChanged: (String) -> Unit) {
     )
 }
 
+// Campo de texto para el usuario
 @Composable
 private fun UserField(user: String, onTextFieldChanged: (String) -> Unit) {
     TextField(
@@ -336,6 +343,7 @@ private fun UserField(user: String, onTextFieldChanged: (String) -> Unit) {
     )
 }
 
+// Cabecera de la pantalla de registro
 @Composable
 private fun RegisterHeader(modifier: Modifier) {
     Column(

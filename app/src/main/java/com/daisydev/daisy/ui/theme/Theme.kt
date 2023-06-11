@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// Esquema de color claro
 private val LightColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
@@ -44,6 +45,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 
+// Esquema de color oscuro
 private val DarkColorScheme = darkColorScheme(
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,
@@ -76,6 +78,12 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = md_theme_dark_onSurfaceVariant,
 )
 
+/**
+ * Tema de la aplicación
+ *
+ * @param darkTheme Si es verdadero, el tema es oscuro
+ * @param content Contenido de la aplicación
+ */
 @Composable
 fun DaisyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

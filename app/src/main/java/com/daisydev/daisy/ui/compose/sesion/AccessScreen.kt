@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.daisydev.daisy.R
 import com.daisydev.daisy.ui.navigation.NavRoute
 
+// Pantalla de acceso que redirige a la pantalla de registro o de inicio de sesión
 @Composable
 fun AccessScreen(navController: NavController) {
     Box(
@@ -37,6 +38,7 @@ fun AccessScreen(navController: NavController) {
     }
 }
 
+// Contenido de la pantalla de acceso
 @Composable
 private fun Access(modifier: Modifier, navController: NavController) {
     Column(modifier = modifier) {
@@ -48,6 +50,7 @@ private fun Access(modifier: Modifier, navController: NavController) {
     }
 }
 
+// Botón para ir a la pantalla de registro
 @Composable
 private fun GoRegisterButton(navController: NavController) {
     Button(
@@ -69,6 +72,7 @@ private fun GoRegisterButton(navController: NavController) {
     }
 }
 
+// Botón para ir a la pantalla de inicio de sesión
 @Composable
 private fun GoLoginButton(navController: NavController) {
     OutlinedButton(
@@ -86,6 +90,7 @@ private fun GoLoginButton(navController: NavController) {
     }
 }
 
+// Encabezado de la pantalla de acceso
 @Composable
 private fun AccessHeader(modifier: Modifier) {
     Column(

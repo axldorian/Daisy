@@ -27,11 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.daisydev.daisy.models.Session
 import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sesion.SesionViewModel
 import com.daisydev.daisy.ui.navigation.NavRoute
-import io.appwrite.models.User
 
+// Pantalla para ver los datos del usuario logueado
 @Composable
 fun SesionScreen(
     navController: NavController,
@@ -54,18 +55,22 @@ fun SesionScreen(
     }
 }
 
+// Mostramos la pantalla de carga o la pantalla de datos del usuario
 @Composable
 private fun ShowLoadingOrScreen(
     viewModel: SesionViewModel,
     isLoading: Boolean,
-    userData: User<Map<String, Any>>?
+    userData: Session?
 ) {
+    // Variable para mostrar la pantalla de carga
     var shouldShowLoading by remember { mutableStateOf(true) }
 
+    // Esta variable se actualiza cuando isLoading cambia
     LaunchedEffect(isLoading) {
         shouldShowLoading = isLoading
     }
 
+    // Mostramos la pantalla de carga o la pantalla de datos del usuario
     if (shouldShowLoading) {
         viewModel.isLogged()
         LoadingIndicator()
@@ -74,8 +79,9 @@ private fun ShowLoadingOrScreen(
     }
 }
 
+// Pantalla de datos del usuario
 @Composable
-private fun ScreenView(viewModel: SesionViewModel, userData: User<Map<String, Any>>?) {
+private fun ScreenView(viewModel: SesionViewModel, userData: Session?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,6 +125,7 @@ private fun ScreenView(viewModel: SesionViewModel, userData: User<Map<String, An
     }
 }
 
+// Genera avatar del usuario
 @Composable
 private fun Avatar(modifier: Modifier, letter: String) {
     Surface(

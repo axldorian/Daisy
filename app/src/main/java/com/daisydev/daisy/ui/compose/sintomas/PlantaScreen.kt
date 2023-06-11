@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -84,14 +85,15 @@ fun PlantaScreen(
                         Text(
                             text = "Nombre cientifico: ${nameC}",
                             color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = "Nombre común: ${name}",
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.titleMedium
-                        )
+                            )
                         // Imagen de internet
                         Image(
                             painter = rememberAsyncImagePainter(url),
@@ -105,8 +107,9 @@ fun PlantaScreen(
                         Text(
                             "Propiedades curativas:",
                             color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "${uses}",
@@ -116,8 +119,9 @@ fun PlantaScreen(
                         Text(
                             text = "Usos:",
                             color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
                             text = "${body}",
