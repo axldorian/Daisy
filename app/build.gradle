@@ -108,6 +108,9 @@ dependencies {
 
     //Compose permissions
     implementation "com.google.accompanist:accompanist-permissions:0.22.0-rc"
+
+    //load image from internet
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }
 
 kapt {

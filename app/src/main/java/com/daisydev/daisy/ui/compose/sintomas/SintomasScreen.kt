@@ -46,7 +46,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.daisydev.daisy.R
 //OpenAI
 import androidx.compose.runtime.rememberCoroutineScope
 import okhttp3.MediaType.Companion.toMediaType
@@ -70,14 +68,27 @@ import org.json.JSONArray
 import java.util.concurrent.TimeUnit
 import java.util.Properties
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import coil.compose.rememberAsyncImagePainter
+import com.daisydev.daisy.ui.feature.sintomas.MainViewModel
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.first
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
-data class Message(val name: String, val body: String)
+data class Message(
+    val name: String,
+    val body: String,
+    val url: String,
+    val nameC: String,
+    val uses: String
+)
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -92,7 +103,7 @@ fun SintomasScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val plantasDataStore = PlantasDataStore(context)
-
+    //sección de busqueda
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,10 +197,11 @@ fun SintomasScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             //List of common items
-            Conversation(messages = sampleData)
+            Conversation(messages = sampleData, navController)
             Spacer(modifier = Modifier.height(-16.dp))
         }
-        if (isSearching) {
+        // Cuando se realiza la busqueda muestra la lista de las plantas
+        if (isKeyboardOpen == Keyboard.Opened) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -199,17 +211,27 @@ fun SintomasScreen(navController: NavController) {
                 // Display the list of symptoms
                 items(sintomas) { sintoma ->
                     Text(
+                        // Al presionar una opcion se realiza la busqueda y oculta el teclado
                         text = "${sintoma.sintoma}",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp),
+                            .padding(vertical = 16.dp)
+                            .clickable {
+                                keyboardController?.hide()
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    busqueda("${sintoma.sintoma}", context) { plantMessages ->
+                                        coroutineScope.launch(Dispatchers.Main) {
+                                            viewModel.setSampleData(plantMessages)
+                                        }
+                                    }
+                                }
+                            },
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
     }
-
 }
 
 enum class Keyboard {
@@ -247,10 +269,11 @@ suspend fun busqueda(value: String, context: Context, onComplete: (Array<Message
         properties.load(inputStream)
         val apiKey = properties.getProperty("API_KEY") //Retrieve the API KEY from api.properties
         val endpoint = "https://api.openai.com"
-        val prompt = "Solo como ejemplo necesito plantas curativas para $value, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
-                "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
-                "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
-                "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
+        val prompt =
+            "Solo como ejemplo necesito plantas curativas para $value, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
+                    "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
+                    "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
+                    "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
 
         val maxTokens = 800 //Maximum allowed characters
 
@@ -307,8 +330,7 @@ suspend fun busqueda(value: String, context: Context, onComplete: (Array<Message
                             val healingProperties = plantObject.getString("propiedades_curativas")
                             val url = get_URL(context, scientificName)
                             val message = Message(
-                                name,
-                                "$healingProperties"
+                                name, "$healingProperties", "$url", "$scientificName", "$uses"
                             )
                             plantMessages.add(message)
                         }
@@ -341,10 +363,11 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
         properties.load(inputStream)
         val apiKey = properties.getProperty("API_KEY")
         val endpoint = "https://api.openai.com"
-        val prompt = "Solo como ejemplo necesito plantas curativas comunes, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
-                "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
-                "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
-                "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
+        val prompt =
+            "Solo como ejemplo necesito plantas curativas comunes, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
+                    "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
+                    "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
+                    "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
 
         val maxTokens = 800
 
@@ -403,8 +426,7 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
                             val url = get_URL(context, scientificName)
 
                             val message = Message(
-                                name,
-                                "$healingProperties"
+                                name, "$healingProperties", "$url", "$scientificName", "$uses"
                             )
                             plantMessages.add(message)
                         }
@@ -432,24 +454,36 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MessageCard(msg: Message) {
+fun MessageCard(msg: Message, navController: NavController) {
     // Add padding around our message
     Row(
         modifier = Modifier
             .padding(all = 10.dp)
             .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20))
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                // se dirije a la pantalla de plantas
+                val encodedUrl = URLEncoder.encode(msg.url, StandardCharsets.UTF_8.toString())
+                try {
+                    navController.navigate(
+                        "plantaInfo/${msg.name}/${msg.nameC}/${msg.body}/${msg.uses}/${encodedUrl}"
+                    )
+                } catch (e: Exception) {
+                    println("Error" + e)
+                }
+            },
     ) {
         Box(
             modifier = Modifier.padding(start = 20.dp)
         ) {
             Row() {
+                // Imagen de internet
                 Image(
-                    painter = painterResource(R.drawable.ic_daisy_bg),
-                    contentDescription = "Contact profile picture",
+                    painter = rememberAsyncImagePainter(msg.url),
+                    contentDescription = msg.name,
                     modifier = Modifier
-                        // Set image size to 40 dp
-                        .size(50.dp)
+                        // Set image size
+                        .size(90.dp)
                         // Clip image to be shaped as a circle
                         .clip(CircleShape)
                         .border(1.5.dp, MaterialTheme.colorScheme.secondary, CircleShape)
@@ -468,7 +502,8 @@ fun MessageCard(msg: Message) {
                     Text(
                         text = msg.body,
                         modifier = Modifier.padding(all = 4.dp),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Justify
                     )
                 }
             }
@@ -477,11 +512,11 @@ fun MessageCard(msg: Message) {
 }
 
 @Composable
-fun Conversation(messages: Array<Message>) {
+fun Conversation(messages: Array<Message>, navController: NavController) {
     LazyColumn(
     ) {
         items(messages) { message ->
-            MessageCard(message)
+            MessageCard(message, navController)
             Spacer(
                 modifier = Modifier.height(8.dp)
             )

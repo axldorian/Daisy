@@ -31,6 +31,9 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
     object Camera:
         NavRoute(title = "Camera", path = "camera")
 
+    object PlantaInfo:
+        NavRoute(title = "PlantaInfo", path = "plantaInfo")
+
     companion object {
         // Función que devuelve una lista de NavRoute para el BottomNavigation
         fun getBottomNavRoutes(): List<NavRoute> {

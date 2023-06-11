@@ -15,8 +15,9 @@ import org.json.JSONObject
 import java.io.IOException
 
 private val Context.dataStore by preferencesDataStore("plantas_data_store")
+
 class PlantasDataStore(context: Context) {
-    private val dataStore= context.dataStore
+    private val dataStore = context.dataStore
 
     val plantas: Flow<List<Message>> = dataStore.data
         .catch { exception ->
@@ -32,16 +33,16 @@ class PlantasDataStore(context: Context) {
             val plantasJson = preferences[PreferencesKeys.PLANTAS] ?: "[]"
             val plantasArray = JSONArray(plantasJson)
             val plantMessages = mutableListOf<Message>()
-
             for (i in 0 until plantasArray.length()) {
                 val plantObject = plantasArray.getJSONObject(i)
-                val name = plantObject.getString("nombre")
-                val healingProperties = plantObject.getString("propiedades_curativas")
-
-                val message = Message(name, healingProperties)
+                val name = plantObject.getString("nombre")?: ""
+                val healingProperties = plantObject.getString("propiedades_curativas")?: ""
+                val url = plantObject.getString("url")?: ""
+                val usos = plantObject.getString("usos")?: ""
+                val nameC = plantObject.getString("nameC")?: ""
+                val message = Message(name, healingProperties,url, nameC, usos)
                 plantMessages.add(message)
             }
-
             plantMessages
         }
 
@@ -51,6 +52,9 @@ class PlantasDataStore(context: Context) {
                 val plantObject = JSONObject().apply {
                     put("nombre", plant.name)
                     put("propiedades_curativas", plant.body)
+                    put("url", plant.url)
+                    put("nameC", plant.nameC)
+                    put("usos", plant.uses)
                 }
                 put(plantObject)
             }
