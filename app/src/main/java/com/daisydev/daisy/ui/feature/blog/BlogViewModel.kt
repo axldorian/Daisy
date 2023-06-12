@@ -39,7 +39,6 @@ class BlogViewModel
             val userData = sessionDataStore.getSession()
 
             // Si el id del usuario no esta vacio, entonces esta logueado
-            /*_isUserLogged.value = userData.id.isNotEmpty()*/
             if (userData.id.isNotEmpty()) {
                 _userData.value = userData
                 _isUserLogged.value = true
@@ -68,9 +67,12 @@ class BlogViewModel
     private val _searchText = MutableLiveData<String>()
     val searchText: LiveData<String> = _searchText
 
-    // El que se comparte entre BlogScreen y EntryBlog
-    private val _selected = MutableLiveData<BlogEntry>()
-    val selected: LiveData<BlogEntry> = _selected
+    private val _selectedTabIndex = MutableLiveData<Int>(0)
+    val selectedTabIndex: LiveData<Int> = _selectedTabIndex
+
+    fun setSelectedTabIndex(index: Int) {
+        _selectedTabIndex.value = index
+    }
 
     fun setIsContentLoading() {
         _isContentLoading.value = true
@@ -110,9 +112,4 @@ class BlogViewModel
             _isContentLoading.value = false
         }
     }
-
-    fun setSelectBlogEntry(blogEntry: BlogEntry) {
-        _selected.value = blogEntry
-    }
-
 }

@@ -32,42 +32,27 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.daisydev.daisy.R
 import com.daisydev.daisy.models.BlogEntry
-import com.daisydev.daisy.ui.feature.blog.BlogViewModel
+import com.daisydev.daisy.ui.feature.blog.BlogSharedViewModel
 import com.daisydev.daisy.util.formatDate
 
+/**
+ * Pantalla de entrada de la vista de una publicación del blog
+ */
 @Composable
-fun EntryBlogScreen(navController: NavController, viewModel: BlogViewModel) {
+fun EntryBlogScreen(navController: NavController, viewModel: BlogSharedViewModel) {
     // Datos de la entrada del blog
     val selected by viewModel.selected.observeAsState()
 
     AppBarTitle(navController = navController, infoEntry = selected!!)
 }
 
+/**
+ * Barra de título de la pantalla
+ */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBarTitle(navController: NavController, infoEntry: BlogEntry) {
-    /*    val infoEntry : BlogEntry = BlogEntry(
-            "6482d1a97a4fdeb12aae",
-            "647a1828df7b78f0dfb1",
-            "64668e42ab469f0dcf8d",
-            convertStringToDate("2021-10-10T00:00:00.000Z"),
-            convertStringToDate("2022-10-10T00:00:00.000Z"),
-            "646d976bb7b1bee78f6e",
-            "Maggys",
-            "Para la hora de dormir",
-            "La manzanilla y otras plantas han sido utilizadas durante siglos debido a sus " +
-                    "beneficios para promover un sueño saludable y reparador. Estas plantas contienen " +
-                    "compuestos naturales que ayudan a relajar el cuerpo y la mente, lo que facilita " +
-                    "conciliar el sueño y mejorar la calidad del descanso. A continuación, te presento " +
-                    "algunos beneficios específicos de la manzanilla y otras plantas para la hora " +
-                    "de dormir.",
-            "null",
-            true,
-            listOf("Manzanilla", "Valeriana", "Lavanda"),
-            listOf("Dolor de cabeza", "Dolor de estómago", "Dolor de garganta")
-        )*/
-
     Column() {
         androidx.compose.material3.TopAppBar(
             title = { Text(text = infoEntry.entry_title) },
@@ -90,7 +75,9 @@ fun AppBarTitle(navController: NavController, infoEntry: BlogEntry) {
     }
 }
 
-
+/**
+ * Contenido de la entrada del blog
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentEntryBlog(entry: BlogEntry) {

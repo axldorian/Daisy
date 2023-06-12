@@ -54,6 +54,7 @@ object AppModule {
         AppWriteRepository(client, dispatcher)
 
     // Función que provee el DataStore de la sesión
+    @Singleton
     @Provides
     fun provideSessionDataStore(@ApplicationContext context: Context) =
         SessionDataStore(context)
