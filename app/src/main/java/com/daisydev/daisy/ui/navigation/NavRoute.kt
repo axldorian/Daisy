@@ -34,6 +34,9 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
     object PlantaInfo:
         NavRoute(title = "PlantaInfo", path = "plantaInfo")
 
+    object EntryBlog:
+        NavRoute(title = "EntryBlog", path = "entryBlog")
+
     companion object {
         // Función que devuelve una lista de NavRoute para el BottomNavigation
         fun getBottomNavRoutes(): List<NavRoute> {
@@ -48,7 +51,8 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
         // Función que devuelve una lista de NavRoute que necesitan pantalla completa
         fun getFullScreenPaths(): List<String> {
             return listOf(
-                Camera.path
+                Camera.path,
+                EntryBlog.path
             )
         }
     }

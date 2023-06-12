@@ -4,8 +4,10 @@ import com.daisydev.daisy.models.AltName
 import com.daisydev.daisy.models.BlogEntry
 import com.daisydev.daisy.models.DataPlant
 import com.daisydev.daisy.models.toBlogEntry
+import com.daisydev.daisy.util.removeAccents
 import io.appwrite.Client
 import io.appwrite.ID
+import io.appwrite.Query
 import io.appwrite.extensions.toJson
 import io.appwrite.models.File
 import io.appwrite.models.InputFile
@@ -171,6 +173,48 @@ class AppWriteRepository @Inject constructor(
             databases.listDocuments(
                 "64668e42ab469f0dcf8d",
                 "647a1828df7b78f0dfb1"
+            ).documents.map {
+                toBlogEntry(it)
+            }
+        }
+    }
+
+    // Para listar los documentos que cumplan el filtro dado
+    suspend fun listDocumentsWithFilter(filter: String): List<BlogEntry> {
+        // Limpia el string con los keywords y lo parte usando de delimitador los espacios
+        val keywords = filter.trim().split(" ").map { removeAccents(it.lowercase()) }
+
+        return withContext(dispatcher) {
+            databases.listDocuments(
+                databaseId = "64668e42ab469f0dcf8d",
+                collectionId = "647a1828df7b78f0dfb1"
+            ).documents.map {
+                toBlogEntry(it)
+            }.filter { blogEntry ->
+
+                // convertimos todo a lowercase y se limpia
+                val plants = blogEntry.plants.map { removeAccents(it.lowercase().trim()) }
+                val symptoms = blogEntry.symptoms.map { removeAccents(it.lowercase().trim()) }
+
+                // Sí existe al menos una coincidencia
+                keywords.any { keyword ->
+                    plants.any { it.contains(keyword) }
+                } || keywords.any { keyword ->
+                    symptoms.any { it.contains(keyword) }
+                }
+            }
+        }
+    }
+
+    // Para listar los documentos del usuario logueado
+    suspend fun listDocumentsOfUser(userId: String): List<BlogEntry> {
+        return withContext(dispatcher) {
+            databases.listDocuments(
+                databaseId = "64668e42ab469f0dcf8d",
+                collectionId = "647a1828df7b78f0dfb1",
+                queries = listOf(
+                    Query.equal("id_user", listOf(userId))
+                )
             ).documents.map {
                 toBlogEntry(it)
             }

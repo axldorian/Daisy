@@ -36,7 +36,9 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,14 +52,75 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.daisydev.daisy.models.BlogEntry
+import com.daisydev.daisy.ui.components.LoadingIndicator
+import com.daisydev.daisy.ui.feature.blog.BlogViewModel
+import com.daisydev.daisy.ui.navigation.NavRoute
 
 
 // Pantalla del blog
 @Composable
-fun BlogScreen(navController: NavController) {
+fun BlogScreen(navController: NavController, viewModel: BlogViewModel) {
 
+    // Para sesión
+    val isUserLogged by viewModel.isUserLogged.observeAsState(true)
+    val isSessionLoading by viewModel.isSessionLoading.observeAsState(true)
+
+    // Si no hay sesión, se redirige a la pantalla de acceso
+    if (!isUserLogged) {
+        LaunchedEffect(Unit) {
+            navController.navigate(NavRoute.Access.path) {
+                popUpTo(NavRoute.Sesion.path) { inclusive = true }
+            }
+        }
+    } else {
+        ShowLoadingOrScreen(
+            navController,
+            viewModel,
+            isSessionLoading
+        )
+    }
+
+
+}
+
+@Composable
+private fun ShowLoadingOrScreen(
+    navController: NavController,
+    viewModel: BlogViewModel,
+    isSessionLoading: Boolean
+) {
+
+    // Variable para mostrar el loading
+    var shouldShowLoading by remember { mutableStateOf(true) }
+
+    // Esta variable se actualiza cuando isSessionLoading cambia
+    LaunchedEffect(isSessionLoading) {
+        shouldShowLoading = isSessionLoading
+    }
+
+    // Mostrar loading o pantalla de reconocimiento
+    if (shouldShowLoading) {
+        viewModel.isLogged()
+        LoadingIndicator()
+    } else {
+        Box(
+            Modifier
+                .fillMaxSize()
+        ) {
+            InicioBlogScreen(navController = navController, viewModel = viewModel)
+        }
+    }
+}
+
+@Composable
+fun InicioBlogScreen(navController: NavController, viewModel: BlogViewModel) {
     val tabs = listOf("Comunidad", "Mis entradas")
     val selectedTabIndex by remember { mutableStateOf(0) }
+
+    val response by viewModel.response.observeAsState()
+    val isFirstLoading by viewModel.isFirstLoading.observeAsState(true)
+
 
     Column(
         modifier = Modifier
@@ -75,8 +138,16 @@ fun BlogScreen(navController: NavController) {
         ) {
             TopAppBar()
         }
-        BlogTabs(tabs = tabs, selectedTabIndex = selectedTabIndex)
+        BlogTabs(
+            tabs = tabs, selectedTabIndex = selectedTabIndex,
+            navController = navController,
+            response = response,
+            loading = isFirstLoading,
+            viewModel = viewModel
+        )
     }
+
+
 }
 
 // Función que se encarga de mostrar el título de la página
@@ -97,7 +168,14 @@ private fun TopAppBar() {
 
 // Control de Tabs de la página
 @Composable
-private fun BlogTabs(tabs: List<String> = listOf(), selectedTabIndex: Int = 0) {
+private fun BlogTabs(
+    tabs: List<String> = listOf(),
+    selectedTabIndex: Int = 0,
+    navController: NavController,
+    response: List<BlogEntry>?,
+    loading: Boolean,
+    viewModel: BlogViewModel
+) {
     var tabIndex: Int by remember { mutableStateOf(selectedTabIndex) }
     // Tabs de la página
     MaterialTheme() {
@@ -105,39 +183,105 @@ private fun BlogTabs(tabs: List<String> = listOf(), selectedTabIndex: Int = 0) {
             tabs.forEachIndexed { index, title ->
                 Tab(text = { Text(text = title) },
                     selected = tabIndex == index,
-                    onClick = { tabIndex = index })
+                    onClick = {
+                        if (tabIndex != index) {
+                            when (index) {
+                                0 -> {
+                                    viewModel.setSearchText("")
+                                    viewModel.setIsContentLoading()
+                                }
+
+                                1 -> {
+                                    viewModel.setIsSelfLoading()
+                                }
+                            }
+                        }
+
+                        tabIndex = index
+                    })
             }
         }
         // Contenido de la página
-        BlogContent(selectedTabIndex = tabIndex)
+        BlogContent(
+            selectedTabIndex = tabIndex,
+            navController = navController,
+            response = response,
+            loading = loading,
+            viewModel = viewModel
+        )
     }
 }
 
 // Función que se encarga de mostrar el contenido de la página en función de la pestaña seleccionada
 @Composable
-private fun BlogContent(selectedTabIndex: Int = 0) {
+private fun BlogContent(
+    selectedTabIndex: Int = 0,
+    navController: NavController,
+    response: List<BlogEntry>?,
+    loading: Boolean,
+    viewModel: BlogViewModel
+) {
     when (selectedTabIndex) {
-        0 -> BlogCommunity()
-        1 -> BlogMyPosts()
+        0 -> BlogCommunity(
+            navController = navController,
+            response = response,
+            firstLoading = loading,
+            viewModel = viewModel
+        )
+
+        1 -> BlogMyPosts(viewModel = viewModel, response = response)
     }
 }
 
 // Funciones que se encargan de mostrar el contenido de cada pestaña
 @Composable
-private fun BlogCommunity() {
+private fun BlogCommunity(
+    navController: NavController,
+    response: List<BlogEntry>?,
+    firstLoading: Boolean,
+    viewModel: BlogViewModel,
+) {
+    val isContentLoading by viewModel.isContentLoading.observeAsState(false)
+
     // Información de las 10 entradas más recientes de la comunidad JSON
     Column {
-        BlogSearch()
-        Text(text = "Sugerencias", fontWeight = FontWeight.Medium, fontSize = 14.sp, modifier = Modifier.padding(15.dp))
+        BlogSearch(viewModel = viewModel)
+        Text(
+            text = "Listado",
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(15.dp)
+        )
         // Lista de entradas
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(15.dp),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            items(10) {
-                CardEntrada()
+        // Carga de los datos
+        if (firstLoading || isContentLoading) {
+            if (firstLoading) {
+                viewModel.getInitialBlogEntries()
+            } else {
+                viewModel.getFilteredBlogEntries()
+            }
+
+            LoadingIndicator()
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(15.dp),
+                verticalArrangement = Arrangement.spacedBy(15.dp)
+            ) {
+                if (response!!.isNotEmpty()) {
+                    response.map { blogEntry ->
+                        item {
+                            CardEntrada(
+                                navController = navController,
+                                blogEntry = blogEntry,
+                                viewModel = viewModel
+                            )
+                        }
+                    }
+                } else {
+                    item { Text(text = "Sin entradas del blog") }
+                }
             }
         }
     }
@@ -145,15 +289,23 @@ private fun BlogCommunity() {
 }
 
 @Composable
-fun BlogMyPosts() {
-    Text(text = "Mis entradas")
+fun BlogMyPosts(viewModel: BlogViewModel, response: List<BlogEntry>?) {
+    val isSelfLoading by viewModel.isSelfLoading.observeAsState()
+
+    if (isSelfLoading!!) {
+        viewModel.getSelfBlogEntries()
+        LoadingIndicator()
+    } else {
+        Text(text = "Mis entradas")
+    }
+
 }
 
 // Funcion que se encarga de manejar el buscador de la página
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BlogSearch() {
-    var textActual by remember { mutableStateOf("") }
+fun BlogSearch(viewModel: BlogViewModel) {
+    val textActual by viewModel.searchText.observeAsState("")
     val clickedSearch = remember { mutableStateOf(false) }
     val sugestionsPlants = listOf("Canela", "Menta", "Rosas")
     val sugestionsSymptoms = listOf("Dolor de cabeza", "Dolor de estómago", "Dolor de garganta")
@@ -163,7 +315,10 @@ fun BlogSearch() {
             .padding(15.dp),
         leadingIcon = {
             IconButton(
-                onClick = { clickedSearch.value = true },
+                onClick = {
+                    clickedSearch.value = false
+                    viewModel.setIsContentLoading()
+                },
                 content = { Icon(Icons.Default.Search, contentDescription = null) },
             )
         },
@@ -171,7 +326,8 @@ fun BlogSearch() {
             IconButton(
                 onClick = {
                     clickedSearch.value = false
-                    textActual = ""
+                    viewModel.setSearchText("")
+                    viewModel.setIsContentLoading()
                 },
                 content = { Icon(Icons.Default.Clear, contentDescription = null) },
                 // De acuerdo al estado de la viable oculta el icono
@@ -194,8 +350,10 @@ fun BlogSearch() {
                             items(sugestionsPlants.size) { items ->
                                 Card(
                                     onClick = {
-                                        textActual = sugestionsPlants[items]
+                                        /*textActual = sugestionsPlants[items]*/
+                                        viewModel.setSearchText(sugestionsPlants[items])
                                         clickedSearch.value = false
+                                        viewModel.setIsContentLoading()
                                     },
                                     content = {
                                         Row(
@@ -240,8 +398,10 @@ fun BlogSearch() {
                                 AssistChip(
                                     label = { Text(text = sugestionsSymptoms[items]) },
                                     onClick = {
-                                        textActual = sugestionsSymptoms[items]
+                                        /*textActual = sugestionsSymptoms[items]*/
+                                        viewModel.setSearchText(sugestionsSymptoms[items])
                                         clickedSearch.value = false
+                                        viewModel.setIsContentLoading()
                                     },
                                     // Utilizamos los colores predeterminados de AssistChip
                                     /*colors = AssistChipDefaults.elevatedAssistChipColors(
@@ -262,34 +422,49 @@ fun BlogSearch() {
             clickedSearch.value = it
             // S
         },
-        onQueryChange = { textActual = it },
+        onQueryChange = { viewModel.setSearchText(it) },
         query = textActual,
-        onSearch = { /* Handle search action */ },
+        onSearch = {
+            clickedSearch.value = false
+            viewModel.setIsContentLoading()
+        },
         placeholder = { Text(text = "Buscar") },
     )
 
 }
 
 // Función que se encarga de mostrar el contenido de la página, tarjetas con información de las entradas
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CardEntrada() {
+fun CardEntrada(navController: NavController, blogEntry: BlogEntry, viewModel: BlogViewModel) {
+
+    val textContent =
+        if (blogEntry.entry_content.length > 36)
+            "${blogEntry.entry_content.subSequence(0..35)}..."
+        else
+            blogEntry.entry_content
+
     Column() {
         ListItem(
             modifier = Modifier
                 .clip(RoundedCornerShape(14.dp))
-                .clickable(onClick = {
-                    // Abrimos la página de la entrada
-
-                }),
-            overlineContent = { Text("Usuario") },
-            supportingContent = { Text("Primeros 36 caracteres de la entrada") },
-            headlineContent = { Text("Titulo entrada") },
+                .clickable(
+                    enabled = true,
+                    onClick = {
+                        // Impresión de prueba
+                        viewModel.setSelectBlogEntry(blogEntry)
+                        navController.navigate(NavRoute.EntryBlog.path)
+                    }
+                ),
+            overlineContent = { Text(blogEntry.name_user) },
+            supportingContent = { Text(textContent) },
+            headlineContent = { Text(blogEntry.entry_title) },
             leadingContent = {
                 Avatar(
                     Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 16.dp),
-                    "A"
+                    blogEntry.name_user.first().toString().uppercase()
                 )
             },
 
@@ -320,14 +495,3 @@ private fun Avatar(modifier: Modifier, letter: String) {
         }
     }
 }
-
-
-
-/*
-/// Preview
-@Preview
-@Composable
-
-fun BlogScreenPreview() {
-    BlogScreen(navController = NavController(LocalContext.current))
-}*/

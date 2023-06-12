@@ -2,13 +2,14 @@ package com.daisydev.daisy.ui.navigation
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.daisydev.daisy.ui.compose.blog.BlogScreen
+import com.daisydev.daisy.ui.compose.blog.EntryBlogScreen
 import com.daisydev.daisy.ui.compose.reconocimiento.CamaraScreen
 import com.daisydev.daisy.ui.compose.seguimiento.SeguimientoScreen
 import com.daisydev.daisy.ui.compose.sesion.AccessScreen
@@ -17,6 +18,7 @@ import com.daisydev.daisy.ui.compose.sesion.RegisterScreen
 import com.daisydev.daisy.ui.compose.sesion.SesionScreen
 import com.daisydev.daisy.ui.compose.sintomas.SintomasScreen
 import com.daisydev.daisy.ui.compose.sintomas.PlantaScreen
+import com.daisydev.daisy.ui.feature.blog.BlogViewModel
 
 
 /**
@@ -24,6 +26,8 @@ import com.daisydev.daisy.ui.compose.sintomas.PlantaScreen
  */
 @Composable
 fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostState) {
+    val blogViewModel: BlogViewModel = hiltViewModel() // Para sección blog
+
     NavHost(navController, startDestination = NavRoute.Sintomas.path) {
         composable(NavRoute.Sintomas.path) {
             SintomasScreen(navController = navController)
@@ -34,7 +38,11 @@ fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostSt
         }
 
         composable(NavRoute.Blog.path) {
-            BlogScreen(navController = navController)
+            BlogScreen(navController = navController, viewModel = blogViewModel)
+        }
+
+        composable(NavRoute.EntryBlog.path) {
+            EntryBlogScreen(navController = navController, viewModel = blogViewModel)
         }
 
         composable(NavRoute.Sesion.path) {
@@ -56,6 +64,7 @@ fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostSt
         composable(NavRoute.Camera.path) {
             CamaraScreen(navController = navController, snackbarHostState)
         }
+
         composable(
             route = "plantaInfo/{name}/{nameC}/{body}/{uses}/{encodedUrl}",
             arguments = listOf(
