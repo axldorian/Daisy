@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 
 @OptIn(FlowPreview::class)
@@ -30,6 +31,9 @@ class MainViewModel : ViewModel() {
     // Estado para detectar si el usuario esta escribiendo en el buscador
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
 
     // Estado de la lista de los sintomas
     private val _sintomas = MutableStateFlow(allSintomas)
@@ -60,6 +64,18 @@ class MainViewModel : ViewModel() {
 
     fun setSampleData(plantMessages: Array<Message>) {
         _sampleData.value = plantMessages
+    }
+
+    fun loadingFalse() {
+        viewModelScope.launch {
+            _isLoading.value = false
+        }
+    }
+
+    fun loadingTrue() {
+        viewModelScope.launch {
+            _isLoading.value = true
+        }
     }
 
 }

@@ -68,13 +68,17 @@ import org.json.JSONArray
 import java.util.concurrent.TimeUnit
 import java.util.Properties
 import android.content.Context
+import android.graphics.Paint.Align
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.rememberAsyncImagePainter
+import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sintomas.MainViewModel
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -104,6 +108,14 @@ fun SintomasScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val plantasDataStore = PlantasDataStore(context)
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    // Variable para mostrar la pantalla de carga
+    var shouldShowLoading by remember { mutableStateOf(true) }
+    // Esta variable se actualiza cuando isLoading cambia
+    LaunchedEffect(isLoading) {
+        shouldShowLoading = isLoading
+    }
+
     //sección de busqueda
     Column(
         modifier = Modifier
@@ -133,13 +145,16 @@ fun SintomasScreen(navController: NavController) {
                 leadingIcon = {
                     IconButton(
                         onClick = {
+
                             //Asynchronously call the search function
                             coroutineScope.launch(Dispatchers.IO) {
+                                viewModel.loadingTrue()
                                 busqueda(searchText, context) { plantMessages ->
                                     coroutineScope.launch(Dispatchers.Main) {
                                         viewModel.setSampleData(plantMessages)
                                     }
                                 }
+                                viewModel.loadingFalse()
                             }
                             keyboardController?.hide()
                         }
@@ -158,11 +173,13 @@ fun SintomasScreen(navController: NavController) {
                 keyboardActions = KeyboardActions(onSearch = {
                     keyboardController?.hide()
                     coroutineScope.launch(Dispatchers.IO) {
+                        viewModel.loadingTrue()
                         busqueda(searchText, context) { plantMessages ->
                             coroutineScope.launch(Dispatchers.Main) {
                                 viewModel.setSampleData(plantMessages)
                             }
                         }
+                        viewModel.loadingFalse()
                     }
                 }),
                 colors = TextFieldDefaults.textFieldColors(
@@ -183,6 +200,7 @@ fun SintomasScreen(navController: NavController) {
                 if (plantMessages.isEmpty()) {
                     // If plantas not available in DataStore, fetch from API and save to DataStore
                     coroutineScope.launch(Dispatchers.IO) {
+                        viewModel.loadingTrue()
                         getPlantasComunes(context) { plantMessages ->
                             coroutineScope.launch(Dispatchers.Main) {
                                 viewModel.setSampleData(plantMessages)
@@ -190,22 +208,27 @@ fun SintomasScreen(navController: NavController) {
                                 plantasDataStore.savePlantas(plantMessages.toList())
                             }
                         }
+                        viewModel.loadingFalse()
                     }
                 } else {
                     // If plantas available in DataStore, update UI
                     viewModel.setSampleData(plantMessages.toTypedArray())
                 }
             }
-            // Section of most common symptoms
-            Text(
-                text = "Plantas más comunes",
-                modifier = Modifier.padding(start = 16.dp),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            //List of common items
-            Conversation(messages = sampleData, navController)
-            Spacer(modifier = Modifier.height(-16.dp))
+            if (shouldShowLoading) {
+                LoadingIndicator()
+            } else {
+                // Section of most common symptoms
+                Text(
+                    text = "Plantas más comunes",
+                    modifier = Modifier.padding(start = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                //List of common items
+                Conversation(messages = sampleData, navController)
+                Spacer(modifier = Modifier.height(-16.dp))
+            }
         }
         // Cuando se realiza la busqueda muestra la lista de las plantas
         if (isKeyboardOpen == Keyboard.Opened) {
@@ -313,6 +336,7 @@ suspend fun busqueda(value: String, context: Context, onComplete: (Array<Message
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val responseData = response.body?.string()
+                    Log.d("TAG", "Respuesta: $responseData")
                     // Process and handle the list of healing plants
                     val responseJson = JSONObject(responseData)
                     val choicesArray = responseJson.getJSONArray("choices")
@@ -407,7 +431,6 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val responseData = response.body?.string()
-                    Log.d("TAG", "Respuesta: $responseData")
                     // Process and handle the list of healing plants
                     val responseJson = JSONObject(responseData)
                     val choicesArray = responseJson.getJSONArray("choices")
@@ -482,7 +505,7 @@ fun MessageCard(msg: Message, navController: NavController) {
             },
     ) {
         Box(
-            modifier = Modifier.padding(start = 20.dp)
+            modifier = Modifier.padding(all = 20.dp)
         ) {
             Row() {
                 // Imagen de internet
@@ -505,6 +528,7 @@ fun MessageCard(msg: Message, navController: NavController) {
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(CenterHorizontally)
                     )
                     // Add a vertical space between the author and message texts
                     Spacer(modifier = Modifier.height(4.dp))
@@ -512,7 +536,7 @@ fun MessageCard(msg: Message, navController: NavController) {
                         text = msg.body,
                         modifier = Modifier.padding(all = 4.dp),
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Justify
+                        textAlign = TextAlign.Center
                     )
                 }
             }

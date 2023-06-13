@@ -74,12 +74,12 @@ fun PlantaScreen(
                 onClick = { /* Do something */ },
                 modifier = Modifier
                     .size(width = 400.dp, height = 740.dp)
-                    .padding(start = 15.dp, top = 75.dp),
+                    .padding(start = 0.dp, top = 75.dp),
 
                 ) {
                 Box(Modifier
-                    .fillMaxSize()
-                    //.padding(start = 15.dp)
+                    .size(width = 375.dp, height = 740.dp)
+                    .padding(start = 20.dp, top = 20.dp)
                 ) {
                     Column() {
                         Text(
@@ -112,8 +112,8 @@ fun PlantaScreen(
                             )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            text = "${uses}",
-                            textAlign = TextAlign.Justify
+                            text = "${body}",
+                            textAlign = TextAlign.Start
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
@@ -124,8 +124,8 @@ fun PlantaScreen(
                             )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            text = "${body}",
-                            textAlign = TextAlign.Justify
+                            text = "${uses}",
+                            textAlign = TextAlign.Start
                         )
                     }
                 }
