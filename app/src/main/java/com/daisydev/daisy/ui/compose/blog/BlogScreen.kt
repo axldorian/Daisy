@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -44,7 +49,8 @@ import com.daisydev.daisy.ui.navigation.NavRoute
 fun BlogScreen(
     navController: NavController,
     sharedViewModel: BlogSharedViewModel,
-    viewModel: BlogViewModel = hiltViewModel()
+    viewModel: BlogViewModel = hiltViewModel(),
+    snackbarHostState: SnackbarHostState
 ) {
 
     // Para sesión
@@ -63,7 +69,8 @@ fun BlogScreen(
             navController,
             sharedViewModel,
             viewModel,
-            isSessionLoading
+            isSessionLoading,
+            snackbarHostState
         )
     }
 }
@@ -80,7 +87,8 @@ private fun ShowLoadingOrScreen(
     navController: NavController,
     sharedViewModel: BlogSharedViewModel,
     viewModel: BlogViewModel,
-    isSessionLoading: Boolean
+    isSessionLoading: Boolean,
+    snackbarHostState: SnackbarHostState
 ) {
 
     // Variable para mostrar el loading
@@ -103,7 +111,8 @@ private fun ShowLoadingOrScreen(
             InicioBlogScreen(
                 navController = navController,
                 viewModel = viewModel,
-                sharedViewModel = sharedViewModel
+                sharedViewModel = sharedViewModel,
+                snackbarHostState = snackbarHostState
             )
         }
     }
@@ -119,13 +128,16 @@ private fun ShowLoadingOrScreen(
 fun InicioBlogScreen(
     navController: NavController,
     viewModel: BlogViewModel,
-    sharedViewModel: BlogSharedViewModel
+    sharedViewModel: BlogSharedViewModel,
+    snackbarHostState: SnackbarHostState
 ) {
     val tabs = listOf("Comunidad", "Mis entradas")
     val selectedTabIndex by viewModel.selectedTabIndex.observeAsState()
 
     val response by viewModel.response.observeAsState()
     val isFirstLoading by viewModel.isFirstLoading.observeAsState(true)
+
+    val showNewBlogEntry by viewModel.showNewBlogEntry.observeAsState(false)
 
     Column(
         modifier = Modifier
@@ -141,7 +153,7 @@ fun InicioBlogScreen(
                 .fillMaxWidth(),
             shape = RoundedCornerShape(0)
         ) {
-            TopAppBar()
+            TopAppBar(viewModel = viewModel, showNewBlogEntry = showNewBlogEntry)
         }
         BlogTabs(
             tabs = tabs, selectedTabIndex = selectedTabIndex!!,
@@ -149,7 +161,9 @@ fun InicioBlogScreen(
             response = response,
             loading = isFirstLoading,
             viewModel = viewModel,
-            sharedViewModel = sharedViewModel
+            sharedViewModel = sharedViewModel,
+            showNewBlogEntry = showNewBlogEntry,
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -157,17 +171,40 @@ fun InicioBlogScreen(
 // Función que se encarga de mostrar el título de la página
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopAppBar() {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                "Blog",
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    )
+private fun TopAppBar(showNewBlogEntry: Boolean, viewModel: BlogViewModel) {
+    if (showNewBlogEntry) {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = "Nueva entrada",
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    viewModel.setShowNewBlogEntry(false)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            }
+        )
+    } else {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    "Blog",
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        )
+    }
 }
 
 // Control de Tabs de la página
@@ -176,35 +213,41 @@ private fun BlogTabs(
     tabs: List<String> = listOf(),
     selectedTabIndex: Int,
     navController: NavController,
-    response: List<BlogEntry>?,
+    response: MutableList<BlogEntry>?,
     loading: Boolean,
     viewModel: BlogViewModel,
-    sharedViewModel: BlogSharedViewModel
+    sharedViewModel: BlogSharedViewModel,
+    showNewBlogEntry: Boolean,
+    snackbarHostState: SnackbarHostState
 ) {
     // Tabs de la página
     MaterialTheme() {
-        TabRow(selectedTabIndex = selectedTabIndex) {
-            tabs.forEachIndexed { index, title ->
-                Tab(text = { Text(text = title) },
-                    selected = selectedTabIndex == index,
-                    onClick = {
-                        if (selectedTabIndex != index) {
-                            when (index) {
-                                0 -> {
-                                    viewModel.setSearchText("")
-                                    viewModel.setIsContentLoading()
-                                }
 
-                                1 -> {
-                                    viewModel.setIsSelfLoading()
+        if (!showNewBlogEntry) {
+            TabRow(selectedTabIndex = selectedTabIndex) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(text = { Text(text = title) },
+                        selected = selectedTabIndex == index,
+                        onClick = {
+                            if (selectedTabIndex != index) {
+                                when (index) {
+                                    0 -> {
+                                        viewModel.setSearchText("")
+                                        viewModel.setIsContentLoading()
+                                    }
+
+                                    1 -> {
+                                        viewModel.setIsSelfLoading()
+                                    }
                                 }
                             }
-                        }
 
-                        viewModel.setSelectedTabIndex(index)
-                    })
+                            viewModel.setSelectedTabIndex(index)
+                        })
+                }
             }
         }
+
         // Contenido de la página
         BlogContent(
             selectedTabIndex = selectedTabIndex,
@@ -212,7 +255,9 @@ private fun BlogTabs(
             response = response,
             loading = loading,
             viewModel = viewModel,
-            sharedViewModel = sharedViewModel
+            sharedViewModel = sharedViewModel,
+            showNewBlogEntry = showNewBlogEntry,
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -223,10 +268,12 @@ private fun BlogTabs(
 private fun BlogContent(
     selectedTabIndex: Int,
     navController: NavController,
-    response: List<BlogEntry>?,
+    response: MutableList<BlogEntry>?,
     loading: Boolean,
     viewModel: BlogViewModel,
-    sharedViewModel: BlogSharedViewModel
+    sharedViewModel: BlogSharedViewModel,
+    showNewBlogEntry: Boolean,
+    snackbarHostState: SnackbarHostState
 ) {
     when (selectedTabIndex) {
         0 -> BlogCommunity(
@@ -241,7 +288,9 @@ private fun BlogContent(
             navController = navController,
             viewModel = viewModel,
             response = response,
-            sharedViewModel = sharedViewModel
+            sharedViewModel = sharedViewModel,
+            showNewBlogEntry = showNewBlogEntry,
+            snackbarHostState = snackbarHostState
         )
     }
 }
