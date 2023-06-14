@@ -70,6 +70,7 @@ import java.util.Properties
 import android.content.Context
 import android.graphics.Paint.Align
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
@@ -77,6 +78,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
 import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sintomas.MainViewModel
@@ -122,11 +124,15 @@ fun SintomasScreen(navController: NavController) {
             .fillMaxSize()
             .wrapContentSize(Alignment.TopCenter)
     ) {
-        Text(
-            text = "Sintomas",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    "Sintomas",
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         )
         Spacer(modifier = Modifier.height(24.dp))
         // Search section
