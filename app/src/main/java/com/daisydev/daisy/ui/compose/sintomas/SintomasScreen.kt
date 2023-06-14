@@ -77,6 +77,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
 import com.daisydev.daisy.ui.components.LoadingIndicator
 import com.daisydev.daisy.ui.feature.sintomas.MainViewModel
@@ -124,8 +125,11 @@ fun SintomasScreen(navController: NavController) {
     ) {
         Text(
             text = "Sintomas",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 20.dp),
             textAlign = TextAlign.Center,
+            overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -399,7 +403,7 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
             "Solo como ejemplo necesito plantas curativas comunes, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
                     "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
                     "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
-                    "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
+                    "}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
 
         val maxTokens = 800
 
@@ -447,7 +451,6 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
                         val plantasArray = JSONArray(plantasJson)
 
                         val plantMessages = mutableListOf<Message>()
-
                         for (i in 0 until plantasArray.length()) {
                             val plantObject = plantasArray.getJSONObject(i)
                             val name = plantObject.getString("nombre")

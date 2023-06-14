@@ -2,6 +2,8 @@ package com.daisydev.daisy.ui.compose.sintomas
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -22,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +48,6 @@ fun PlantaScreen(
     uses: String,
     url: String
 ) {
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,68 +76,82 @@ fun PlantaScreen(
         },
         content = {
             Card(
-                onClick = { /* Do something */ },
                 modifier = Modifier
-                    .size(width = 400.dp, height = 740.dp)
-                    .padding(start = 0.dp, top = 75.dp),
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(top = 75.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
+
+            ) {
+                Box(
+                    Modifier
+                        .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
+                        .align(Alignment.CenterHorizontally)
 
                 ) {
-                Box(Modifier
-                    .size(width = 375.dp, height = 740.dp)
-                    .padding(start = 20.dp, top = 20.dp)
-                ) {
                     Column() {
-                        Text(
-                            text = "Nombre cientifico: ${nameC}",
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Nombre común: ${name}",
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.titleMedium
-                            )
-                        // Imagen de internet
-                        Image(
-                            painter = rememberAsyncImagePainter(url),
-                            contentDescription = nameC,
-                            modifier = Modifier
-                                // Set image size
-                                .size(400.dp)
-                                .fillMaxHeight(1f),
-                        )
-                        Spacer(modifier = Modifier.height(1.dp))
-                        Text(
-                            "Propiedades curativas:",
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            text = "${body}",
-                            textAlign = TextAlign.Start
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            text = "Usos:",
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            text = "${uses}",
-                            textAlign = TextAlign.Start
-                        )
+                        LazyColumn() {
+                            item {
+
+                                Text(
+                                    text = "Nombre cientifico: ${nameC}",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            item {
+                                Text(
+                                    text = "Nombre común: ${name}",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                            }
+                            item {
+                                // Imagen de internet
+                                Image(
+                                    painter = rememberAsyncImagePainter(url),
+                                    contentDescription = nameC,
+                                    modifier = Modifier
+                                        // Set image size
+                                        .size(400.dp)
+                                        .fillMaxHeight(1f),
+                                )
+                            }
+                            item {
+                                Text(
+                                    "Propiedades curativas:",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            item {
+                                Text(
+                                    text = "${body}",
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                            item {
+                                Text(
+                                    text = "Usos:",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            item {
+                                Text(
+                                    text = "${uses}",
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
                     }
                 }
             }
-        },
-
-        )
+        }
+    )
 
 }
 

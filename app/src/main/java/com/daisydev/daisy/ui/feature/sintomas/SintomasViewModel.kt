@@ -45,7 +45,7 @@ class MainViewModel : ViewModel() {
             if (text.isBlank()) {
                 sintomas
             } else {
-                delay(2000L)
+                delay(1000L)
                 sintomas.filter {
                     it.doesMatchSearchQuery(text)
                 }
@@ -53,7 +53,7 @@ class MainViewModel : ViewModel() {
         }.onEach { _isSearching.update { false } }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.WhileSubscribed(2000),
             _sintomas.value
         )
 
