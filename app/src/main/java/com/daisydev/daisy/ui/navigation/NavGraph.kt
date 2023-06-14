@@ -19,6 +19,7 @@ import com.daisydev.daisy.ui.compose.sesion.SesionScreen
 import com.daisydev.daisy.ui.compose.sintomas.SintomasScreen
 import com.daisydev.daisy.ui.compose.sintomas.PlantaScreen
 import com.daisydev.daisy.ui.feature.blog.BlogSharedViewModel
+import com.daisydev.daisy.ui.compose.seguimiento.SeguimientoPlanta
 
 
 /**
@@ -103,6 +104,36 @@ fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostSt
                 url = data_url
             )
         }
+        composable(
+            route = "plantaCuidados/{name}/{nameC}/{body}/{cuidados}/{encodedUrl}",
+            arguments = listOf(
+                navArgument("name") { type = NavType.StringType },
+                navArgument("nameC") { type = NavType.StringType },
+                navArgument("body") { type = NavType.StringType },
+                navArgument("cuidados") { type = NavType.StringType },
+                navArgument("encodedUrl") { type = NavType.StringType }
+            )
+        ) { it ->
+            val data_name = it.arguments?.getString("name")
+            val data_nameC = it.arguments?.getString("nameC")
+            val data_body = it.arguments?.getString("body")
+            val data_cuidados = it.arguments?.getString("cuidados")?.split("\n") // Convertir a List<String>
+            val data_url = it.arguments?.getString("encodedUrl")
+            requireNotNull(data_name)
+            requireNotNull(data_nameC)
+            requireNotNull(data_body)
+            requireNotNull(data_cuidados)
+            requireNotNull(data_url)
+            SeguimientoPlanta(
+                navController = navController,
+                name = data_name,
+                nameC = data_nameC,
+                body = data_body,
+                cuidados = data_cuidados,
+                url = data_url
+            )
+        }
+
 
     }
 }

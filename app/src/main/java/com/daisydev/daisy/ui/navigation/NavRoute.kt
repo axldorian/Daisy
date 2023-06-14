@@ -37,6 +37,10 @@ sealed class NavRoute(val title: String, val path: String, val icon: Int = -1) {
     object EntryBlog:
         NavRoute(title = "EntryBlog", path = "entryBlog")
 
+    object SeguimientoPlantaCuidados:
+        NavRoute(title = "PlantaCuidados", path = "plantaCuidados")
+
+
     companion object {
         // Función que devuelve una lista de NavRoute para el BottomNavigation
         fun getBottomNavRoutes(): List<NavRoute> {
