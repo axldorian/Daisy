@@ -70,6 +70,7 @@ import java.util.Properties
 import android.content.Context
 import android.graphics.Paint.Align
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
@@ -123,14 +124,15 @@ fun SintomasScreen(navController: NavController) {
             .fillMaxSize()
             .wrapContentSize(Alignment.TopCenter)
     ) {
-        Text(
-            text = "Sintomas",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(top = 20.dp),
-            textAlign = TextAlign.Center,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleLarge
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    "Sintomas",
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         )
         Spacer(modifier = Modifier.height(24.dp))
         // Search section
@@ -403,7 +405,7 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
             "Solo como ejemplo necesito plantas curativas comunes, dame la respuesta en JSON siguiendo la siguiente idea de formato que contendrá las plantas:" +
                     "{\"plantas\": [{\"nombre\": \"nombre de la planta\", \"nombre_cientifico\": \"nombre cientifico de la planta\", " +
                     "\"usos\": \"usos medicinales de la planta\", \"propiedades_curativas\": \"propiedades curativas de la planta\"," +
-                    "}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
+                    "\"url_imagen\": \"una url de una imagen de la planta\"}, {\"aqui lo mismo para la siguiente planta y así sucesivamente\"}]}:"
 
         val maxTokens = 800
 
@@ -451,6 +453,7 @@ suspend fun getPlantasComunes(context: Context, onComplete: (Array<Message>) -> 
                         val plantasArray = JSONArray(plantasJson)
 
                         val plantMessages = mutableListOf<Message>()
+
                         for (i in 0 until plantasArray.length()) {
                             val plantObject = plantasArray.getJSONObject(i)
                             val name = plantObject.getString("nombre")

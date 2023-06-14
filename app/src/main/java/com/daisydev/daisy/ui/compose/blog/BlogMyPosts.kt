@@ -1,27 +1,39 @@
 package com.daisydev.daisy.ui.compose.blog
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,9 +57,11 @@ import com.daisydev.daisy.ui.navigation.NavRoute
 @Composable
 fun BlogMyPosts(
     viewModel: BlogViewModel,
-    response: List<BlogEntry>?,
+    response: MutableList<BlogEntry>?,
     navController: NavController,
-    sharedViewModel: BlogSharedViewModel
+    sharedViewModel: BlogSharedViewModel,
+    showNewBlogEntry: Boolean,
+    snackbarHostState: SnackbarHostState
 ) {
     val isSelfLoading by viewModel.isSelfLoading.observeAsState()
 
@@ -55,56 +69,216 @@ fun BlogMyPosts(
         viewModel.getSelfBlogEntries()
         LoadingIndicator()
     } else {
-        Column {
-            Button(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(top = 20.dp, end = 35.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                onClick = { /*TODO*/ }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 5.dp)
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.ic_post_add),
-                        contentDescription = "Add post",
-                        tint = MaterialTheme.colorScheme.onSurface
+        if (showNewBlogEntry) {
+            NewBlog(viewModel = viewModel, snackbarHostState = snackbarHostState)
+        } else {
+            MainContent(
+                response = response,
+                navController = navController,
+                viewModel = viewModel,
+                sharedViewModel = sharedViewModel,
+                snackbarHostState = snackbarHostState
+            )
+        }
+    }
+}
+
+// Función que se encarga de mostrar el contenido de la página
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MainContent(
+    response: MutableList<BlogEntry>?,
+    navController: NavController,
+    sharedViewModel: BlogSharedViewModel,
+    viewModel: BlogViewModel,
+    snackbarHostState: SnackbarHostState
+) {
+    val openDialog = remember { mutableStateOf(false) }
+    val toDeleteItemIndex = remember { mutableStateOf(0) }
+    val toDeleteItemData = remember { mutableStateOf<BlogEntry?>(null) }
+    val isDeleteSuccess by viewModel.isDeleteSuccess.observeAsState(false)
+    val isDeleteError by viewModel.isDeleteError.observeAsState(false)
+
+    if (isDeleteSuccess) {
+        viewModel.showSnackbar(
+            snackbarHostState = snackbarHostState,
+            message = "Entrada eliminada correctamente"
+        )
+        viewModel.setIsDeleteSuccess(false)
+    }
+
+    if (isDeleteError) {
+        viewModel.showSnackbar(
+            snackbarHostState = snackbarHostState,
+            message = "Error al eliminar la entrada, intente de nuevo"
+        )
+        viewModel.setIsDeleteError(false)
+    }
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openDialog.value = false
+                viewModel.deleteBlogEntry(
+                    toDeleteItemData.value!!, toDeleteItemIndex.value
+                )
+            },
+            title = {
+                Text(
+                    text = "Eliminar entrada",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Estás seguro de que quieres eliminar esta entrada?",
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        viewModel.deleteBlogEntry(
+                            toDeleteItemData.value!!, toDeleteItemIndex.value
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     )
+                ) {
                     Text(
-                        modifier = Modifier.padding(horizontal = 8.dp), text = "Crear"
+                        text = "Eliminar",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    Text(
+                        text = "Cancelar",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
                     )
                 }
             }
-            Text(
-                text = "Listado",
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(15.dp)
-            )
-            LazyColumn(
+        )
+    }
+
+    Column {
+        Button(
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(top = 20.dp, end = 35.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            onClick = { viewModel.setShowNewBlogEntry(true) }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 5.dp)
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.ic_post_add),
+                    contentDescription = "Add post",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    modifier = Modifier.padding(horizontal = 8.dp), text = "Crear"
+                )
+            }
+        }
+        Text(
+            text = "Mis entradas",
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(15.dp)
+        )
+
+        if (response.isNullOrEmpty()) {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(15.dp),
-                verticalArrangement = Arrangement.spacedBy(15.dp)
+                contentAlignment = Alignment.Center
             ) {
-                if (response!!.isNotEmpty()) {
-                    response.map { blogEntry ->
-                        item {
-                            CardEntrada(
-                                navController = navController,
-                                blogEntry = blogEntry,
-                                viewModel = viewModel,
-                                sharedViewModel = sharedViewModel
-                            )
+                Text(
+                    text = "No tienes entradas",
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(15.dp)
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            itemsIndexed(response!!) { index, blogEntry ->
+                val dismissState = rememberDismissState(
+                    confirmValueChange = {
+                        if (it == DismissValue.DismissedToStart) {
+                            toDeleteItemData.value = blogEntry
+                            toDeleteItemIndex.value = index
+                            openDialog.value = true
+                            true
+                        } else {
+                            false
                         }
                     }
-                } else {
-                    item { Text(text = "Sin entradas propias") }
+                )
+
+                if (dismissState.currentValue != DismissValue.Default) {
+                    LaunchedEffect(Unit) {
+                        dismissState.reset()
+                    }
                 }
+
+                SwipeToDismiss(
+                    state = dismissState,
+                    directions = setOf(DismissDirection.EndToStart),
+                    background = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(MaterialTheme.colorScheme.errorContainer),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Text(
+                                text = "Eliminar",
+                                color = Color.White,
+                                modifier = Modifier.padding(end = 20.dp)
+                            )
+                        }
+                    },
+                    dismissContent = {
+                        CardEntrada(
+                            navController = navController,
+                            blogEntry = blogEntry,
+                            sharedViewModel = sharedViewModel
+                        )
+                    }
+                )
             }
         }
     }
@@ -112,12 +286,10 @@ fun BlogMyPosts(
 
 // Función que se encarga de mostrar el contenido de la página,
 // tarjetas con información de las entradas
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CardEntrada(
     navController: NavController,
     blogEntry: BlogEntry,
-    viewModel: BlogViewModel,
     sharedViewModel: BlogSharedViewModel
 ) {
 
@@ -136,6 +308,7 @@ private fun CardEntrada(
                     onClick = {
                         // Impresión de prueba
                         sharedViewModel.setSelectBlogEntry(blogEntry)
+                        sharedViewModel.setIsSelfContent(true)
                         navController.navigate(NavRoute.EntryBlog.path)
                     }
                 ),
@@ -154,6 +327,7 @@ private fun CardEntrada(
     }
 }
 
+// Función que genera el avatar de la publicación
 @Composable
 private fun Avatar(modifier: Modifier, letter: String) {
     Surface(

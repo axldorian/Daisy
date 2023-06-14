@@ -48,10 +48,11 @@ object AppModule {
     // Función que provee el repositorio de AppWrite
     @Provides
     fun provideAppWriteRepository(
+        @ApplicationContext context: Context,
         client: Client,
         dispatcher: CoroutineDispatcher
     ): AppWriteRepository =
-        AppWriteRepository(client, dispatcher)
+        AppWriteRepository(context, client, dispatcher)
 
     // Función que provee el DataStore de la sesión
     @Singleton

@@ -2,6 +2,7 @@ package com.daisydev.daisy.ui.navigation
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,7 +26,7 @@ import com.daisydev.daisy.ui.feature.blog.BlogSharedViewModel
  */
 @Composable
 fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostState) {
-    val blogSharedViewModel = BlogSharedViewModel() // Para sección blog
+    val blogSharedViewModel: BlogSharedViewModel = hiltViewModel() // Para sección blog
 
     NavHost(navController, startDestination = NavRoute.Sintomas.path) {
         composable(NavRoute.Sintomas.path) {
@@ -37,11 +38,19 @@ fun NavGraph(navController: NavHostController, snackbarHostState: SnackbarHostSt
         }
 
         composable(NavRoute.Blog.path) {
-            BlogScreen(navController = navController, sharedViewModel = blogSharedViewModel)
+            BlogScreen(
+                navController = navController,
+                sharedViewModel = blogSharedViewModel,
+                snackbarHostState = snackbarHostState
+            )
         }
 
         composable(NavRoute.EntryBlog.path) {
-            EntryBlogScreen(navController = navController, viewModel = blogSharedViewModel)
+            EntryBlogScreen(
+                navController = navController,
+                viewModel = blogSharedViewModel,
+                snackbarHostState = snackbarHostState
+            )
         }
 
         composable(NavRoute.Sesion.path) {

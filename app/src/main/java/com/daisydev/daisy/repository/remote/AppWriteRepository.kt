@@ -1,9 +1,13 @@
 package com.daisydev.daisy.repository.remote
 
+import android.content.Context
+import android.net.Uri
 import com.daisydev.daisy.models.AltName
+import com.daisydev.daisy.models.BlogDocumentModel
 import com.daisydev.daisy.models.BlogEntry
 import com.daisydev.daisy.models.DataPlant
 import com.daisydev.daisy.models.toBlogEntry
+import com.daisydev.daisy.util.getFilenameFromUri
 import com.daisydev.daisy.util.removeAccents
 import io.appwrite.Client
 import io.appwrite.ID
@@ -21,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +34,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class AppWriteRepository @Inject constructor(
+    private val context: Context,
     private val client: Client,
     private val dispatcher: CoroutineDispatcher
 ) {
@@ -93,6 +99,35 @@ class AppWriteRepository @Inject constructor(
                 bucketId = "6476c99ad8636acff4ad",
                 fileId = ID.unique(),
                 file = InputFile.fromFile(image),
+            )
+        }
+    }
+
+    // Para subir una imagen de blog a AppWrite
+    suspend fun uploadBlogImage(imageUri: Uri): File {
+        return withContext(Dispatchers.IO) {
+            context.contentResolver.openInputStream(imageUri)?.use { stream ->
+                val mimeType = context.contentResolver.getType(imageUri)
+                val filename = getFilenameFromUri(context, imageUri)
+
+                storage.createFile(
+                    bucketId = "64875f770336e687328c",
+                    fileId = ID.unique(),
+                    file = InputFile.fromBytes(
+                        bytes = stream.readBytes(),
+                        filename = filename!!,
+                        mimeType = mimeType!!
+                    ),
+                )
+            } ?: throw IOException("Failed to open InputStream for imageUri: $imageUri")
+        }
+    }
+
+    suspend fun deleteBlogImage(imageId: String) {
+        return withContext(dispatcher) {
+            storage.deleteFile(
+                bucketId = "64875f770336e687328c",
+                fileId = imageId
             )
         }
     }
@@ -168,19 +203,19 @@ class AppWriteRepository @Inject constructor(
     // -- Databases --
 
     // Para listar todos los documentos en la base de datos de AppWrite
-    suspend fun listDocuments(): List<BlogEntry> {
+    suspend fun listDocuments(): MutableList<BlogEntry> {
         return withContext(dispatcher) {
             databases.listDocuments(
                 "64668e42ab469f0dcf8d",
                 "647a1828df7b78f0dfb1"
             ).documents.map {
                 toBlogEntry(it)
-            }
+            }.toMutableList()
         }
     }
 
     // Para listar los documentos que cumplan el filtro dado
-    suspend fun listDocumentsWithFilter(filter: String): List<BlogEntry> {
+    suspend fun listDocumentsWithFilter(filter: String): MutableList<BlogEntry> {
         // Limpia el string con los keywords y lo parte usando de delimitador los espacios
         val keywords = filter.trim().split(" ").map { removeAccents(it.lowercase()) }
 
@@ -202,12 +237,12 @@ class AppWriteRepository @Inject constructor(
                 } || keywords.any { keyword ->
                     symptoms.any { it.contains(keyword) }
                 }
-            }
+            }.toMutableList()
         }
     }
 
     // Para listar los documentos del usuario logueado
-    suspend fun listDocumentsOfUser(userId: String): List<BlogEntry> {
+    suspend fun listDocumentsOfUser(userId: String): MutableList<BlogEntry> {
         return withContext(dispatcher) {
             databases.listDocuments(
                 databaseId = "64668e42ab469f0dcf8d",
@@ -217,7 +252,40 @@ class AppWriteRepository @Inject constructor(
                 )
             ).documents.map {
                 toBlogEntry(it)
-            }
+            }.toMutableList()
+        }
+    }
+
+    // Para obtener un documento de la base de datos de AppWrite
+    suspend fun createDocument(documentModel: BlogDocumentModel) {
+        return withContext(dispatcher) {
+            databases.createDocument(
+                databaseId = "64668e42ab469f0dcf8d",
+                collectionId = "647a1828df7b78f0dfb1",
+                documentId = ID.unique(),
+                data = documentModel.toJson()
+            )
+        }
+    }
+
+    suspend fun updateDocument(docId: String, documentModel: BlogDocumentModel) {
+        return withContext(dispatcher) {
+            databases.updateDocument(
+                databaseId = "64668e42ab469f0dcf8d",
+                collectionId = "647a1828df7b78f0dfb1",
+                documentId = docId,
+                data = documentModel.toJson()
+            )
+        }
+    }
+
+    suspend fun deleteDocument(docId: String) {
+        return withContext(dispatcher) {
+            databases.deleteDocument(
+                databaseId = "64668e42ab469f0dcf8d",
+                collectionId = "647a1828df7b78f0dfb1",
+                documentId = docId
+            )
         }
     }
 }

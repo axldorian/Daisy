@@ -3,6 +3,8 @@ package com.daisydev.daisy.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.camera.core.ImageProxy
 import java.io.File
 import java.io.FileOutputStream
@@ -25,4 +27,30 @@ fun convertImage(context: Context, image: ImageProxy): File {
     }
 
     return file
+}
+
+/**
+ * Obtiene el filename de un [Uri]
+ * @param context Contexto de la aplicación.
+ * @param uri Uri a convertir.
+ * @return [String] con el filename.
+ */
+fun getFilenameFromUri(context: Context, uri: Uri): String? {
+    val cursor = context.contentResolver.query(
+        uri, null, null, null, null
+    )
+
+    val filename = if (cursor != null && cursor.moveToFirst()) {
+        val columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (columnIndex != -1) {
+            cursor.getString(columnIndex)
+        } else {
+            null
+        }
+    } else {
+        null
+    }
+    cursor?.close()
+
+    return filename
 }

@@ -8,12 +8,13 @@ import java.util.Date
 open class BlogDocumentModel(
     val id_user: String,
     val name_user: String,
-    val entry_title: String,
-    val entry_content: String,
-    val entry_image_id: String,
-    val posted: Boolean,
-    val plants: List<String>,
-    val symptoms: List<String>
+    var entry_title: String,
+    var entry_content: String,
+    var entry_image_id: String,
+    var entry_image_url: String,
+    var posted: Boolean,
+    var plants: List<String>,
+    var symptoms: List<String>
 )
 
 // Clase que representa el modelo de un documento de la colección "blog"
@@ -29,6 +30,7 @@ class BlogEntry(
     entry_title: String,
     entry_content: String,
     entry_image_id: String,
+    entry_image_url: String,
     posted: Boolean,
     plants: List<String>,
     symptoms: List<String>
@@ -38,6 +40,7 @@ class BlogEntry(
     entry_title = entry_title,
     entry_content = entry_content,
     entry_image_id = entry_image_id,
+    entry_image_url = entry_image_url,
     posted = posted,
     plants = plants,
     symptoms = symptoms
@@ -61,6 +64,7 @@ fun toBlogEntry(document: Document<Map<String, Any>>): BlogEntry {
         entry_title = document.data["entry_title"].toString(),
         entry_content = document.data["entry_content"].toString(),
         entry_image_id = document.data["entry_image_id"] as? String ?: "",
+        entry_image_url = document.data["entry_image_url"] as? String ?: "",
         posted = document.data["posted"] as Boolean,
         plants = document.data["plants"] as? List<String> ?: listOf(),
         symptoms = document.data["symptoms"] as? List<String> ?: listOf()

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,7 +56,7 @@ import com.daisydev.daisy.ui.navigation.NavRoute
 @Composable
 fun BlogCommunity(
     navController: NavController,
-    response: List<BlogEntry>?,
+    response: MutableList<BlogEntry>?,
     firstLoading: Boolean,
     viewModel: BlogViewModel,
     sharedViewModel: BlogSharedViewModel,
@@ -66,7 +67,7 @@ fun BlogCommunity(
     Column {
         BlogSearch(viewModel = viewModel)
         Text(
-            text = "Listado",
+            text = "Entradas de la comunidad",
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
             modifier = Modifier.padding(15.dp)
@@ -82,24 +83,38 @@ fun BlogCommunity(
 
             LoadingIndicator()
         } else {
+
+            if (response.isNullOrEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(15.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sin entradas del blog",
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp)
+                    )
+                }
+            }
+            
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(15.dp),
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
-                if (response!!.isNotEmpty()) {
-                    response.map { blogEntry ->
-                        item {
-                            CardEntrada(
-                                navController = navController,
-                                blogEntry = blogEntry,
-                                sharedViewModel = sharedViewModel
-                            )
-                        }
-                    }
-                } else {
-                    item { Text(text = "Sin entradas del blog") }
+                itemsIndexed(response!!) { _, blogEntry ->
+                    CardEntrada(
+                        navController = navController,
+                        blogEntry = blogEntry,
+                        sharedViewModel = sharedViewModel
+                    )
                 }
             }
         }
