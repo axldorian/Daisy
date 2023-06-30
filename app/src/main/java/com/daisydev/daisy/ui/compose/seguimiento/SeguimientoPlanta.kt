@@ -1,6 +1,11 @@
 package com.daisydev.daisy.ui.compose.seguimiento
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,17 +43,16 @@ import com.daisydev.daisy.ui.navigation.NavRoute
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextField
-//import androidx.compose.material3.ButtonDefaults.TextButtonColors
-//import androidx.compose.material3.ButtonDefaults.TextButtonContentColors
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.DatePicker
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationCompat
+import com.daisydev.daisy.R
 import java.time.LocalDate
-
-
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +65,29 @@ fun SeguimientoPlanta(
     cuidados: List<String>,
     url: String
 ) {
+    val context = LocalContext.current
+
+    // Función para mostrar una notificación
+    fun showNotification(title: String, content: String) {
+        val channelId = "80"
+        val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // Crear el canal de notificación para Android 8.0 y superior
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "My Channel", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // Construir la notificación
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+
+        // Mostrar la notificación
+        notificationManager.notify(1, builder.build())
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -104,6 +131,7 @@ fun SeguimientoPlanta(
                                 val titleText = remember { mutableStateOf("Título del recordatorio") }
                                 val showDatePicker = remember { mutableStateOf(false) }
                                 val selectedDate = remember { mutableStateOf(LocalDate.now()) }
+                                val titleDescriptionText = remember { mutableStateOf("Descripción del recordatorio") }
 
                                 Text(text = "Nombre común: $name", modifier = Modifier.weight(1f))
                                 Button(
@@ -125,11 +153,19 @@ fun SeguimientoPlanta(
                                                     onValueChange = { titleText.value = it },
                                                     modifier = Modifier.fillMaxWidth()
                                                 )
+                                                TextField(
+                                                    value = titleDescriptionText.value,
+                                                    onValueChange = { titleDescriptionText.value = it },
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
                                             }
                                         },
                                         confirmButton = {
                                             Button(
-                                                onClick = { showDialog.value = false },
+                                                onClick = { showDialog.value = false
+                                                    // Llamar a la función showNotification para mostrar la notificación
+                                                    showNotification(titleText.value, titleDescriptionText.value)
+                                                },
                                                 colors = ButtonDefaults.textButtonColors(
                                                     contentColor = MaterialTheme.colorScheme.primary
                                                     //backgroundColor = MaterialTheme.colorScheme.background
@@ -195,4 +231,5 @@ fun SeguimientoPlanta(
             }
         }
     )
+
 }

@@ -114,6 +114,12 @@ dependencies {
 
     // json parser
     implementation 'org.json:json:20230227'
+
+    // Core-KTX
+    def core_version = "1.6.0"
+    dependencies {
+        implementation("androidx.core:core-ktx:$core_version")
+    }
 }
 
 kapt {
